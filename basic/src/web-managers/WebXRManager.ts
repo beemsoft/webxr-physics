@@ -36,7 +36,6 @@ import AudioHandler from '../audioHandler';
 import RayInput from '../ray-input/ray-input';
 
 const REALITY = 'reality';
-let polyfill: WebXRPolyfill;
 
 export default class WebXRManager {
   private camera: PerspectiveCamera;
@@ -66,29 +65,28 @@ export default class WebXRManager {
 
     console.log('renderer size: ' + JSON.stringify(this.renderer.getSize()));
     this.renderer.vr.setDevice(display);
-     polyfill = new WebXRPolyfill();
-      console.log(navigator);
+    new WebXRPolyfill();
       // @ts-ignore
     if (navigator.xr) {
-        // @ts-ignore
-      navigator.xr.requestDevice().then((device) => {
+      // @ts-ignore
+      navigator.xr.requestDevice()
+        .then((device) => {
           this.device = device;
-         device.requestSession({
-          immersive: true
-        })
-             .then(session => {
-               console.log('XR session requested');
+          device.requestSession({
+            immersive: true
+          })
+            .then(session => {
               this.session = session;
               this.startPresenting();
-             });
+            });
         });
-      }
+    }
   }
 
   startSession(display) {
-   const  createVirtualReality = true;
+    const createVirtualReality = true;
     const sessionInitParameters = {
-      exclusive : createVirtualReality,
+      exclusive: createVirtualReality,
       type: REALITY
     };
     if (this.sessionActive) {
@@ -138,7 +136,6 @@ export default class WebXRManager {
       let cameraGroup = new Group();
       cameraGroup.position.set(0, 0, 0);
       cameraGroup.add(this.camera);
-      console.log('Add ray input');
       cameraGroup.add(this.rayInput.getMesh());
       this.scene.add(cameraGroup);
       this.physicsHandler = new PhysicsHandler(this.scene, this.rayInput);
@@ -173,7 +170,7 @@ export default class WebXRManager {
   };
 
   startPresenting() {
-      console.log('Start presenting');
+    console.log('Start presenting');
     this.renderer.vr.enabled = true;
     // @ts-ignore
     this.sessionActive = true;
@@ -183,14 +180,12 @@ export default class WebXRManager {
     this.camera.updateProjectionMatrix();
     console.log('Request present VR display');
     this.display.requestPresent([{source: this.renderer.domElement}])
-        .then(() => {
-          // let event: CustomEvent = new CustomEvent('sessionStarted', { detail: { session: this.session }});
-          // dispatchEvent(event);
-          this.audioHandler = new AudioHandler(this.scene);
-            this.audioHandler.initAudio();
-            this.audioHandler.audioElement.play();
-          this.session.requestAnimationFrame(this.onXRFrame);
-        });
+    .then(() => {
+      this.audioHandler = new AudioHandler(this.scene);
+      this.audioHandler.initAudio();
+      this.audioHandler.audioElement.play();
+      this.session.requestAnimationFrame(this.onXRFrame);
+    });
   };
 
   endSession() {
@@ -205,10 +200,6 @@ export default class WebXRManager {
     this.camera.matrixWorldInverse.copy(this.cameraCloned.matrixWorldInverse);
     this.camera.projectionMatrix.copy(this.cameraCloned.projectionMatrix);
     this.camera.updateProjectionMatrix();
-  };
-
-  doRender() {
-    this.renderer.render(this.scene, this.camera);
   };
 }
 
