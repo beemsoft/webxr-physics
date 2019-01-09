@@ -112,8 +112,6 @@ export default class WebXRManager {
         this.poseTarget = this.camera;
       }
       this.poseTargetCloned = this.poseTarget.clone();
-      // Handle session lifecycle events
-
       this.renderer.domElement.style.width = '100%';
       this.renderer.domElement.style.height = '100%';
     }).catch(err => {
@@ -137,7 +135,6 @@ export default class WebXRManager {
     this.gamepad = getVRGamepad();
     if (this.gamepad) {
       this.rayInput = new RayInput(this.camera, this.gamepad);
-      // rayInput.setSize(renderer.getSize());
       let cameraGroup = new Group();
       cameraGroup.position.set(0, 0, 0);
       cameraGroup.add(this.camera);
@@ -148,23 +145,12 @@ export default class WebXRManager {
       this.rayHandler = new RayHandler(this.scene, this.rayInput, this.physicsHandler);
 
       this.rayInput.rayInputEventEmitter.on('raydown', (opt_mesh) => {
-          // handleRayDown_();
-          // if (isDatGuiVisible && guiInputHelper !== null) {
-      //     //     guiInputHelper.pressed(true);
-      //     // }
-          this.rayHandler.handleRayDown_(opt_mesh);
+        this.rayHandler.handleRayDown_(opt_mesh);
       });
       this.rayInput.rayInputEventEmitter.on('rayup', () => {
-      //     // handleRayUp_();
-      //     this.rayHandler.handleRayUp_();
-      //     // if (isDatGuiVisible && guiInputHelper !== null) {
-      //     //     guiInputHelper.pressed(false);
-      //     // }
-          this.rayHandler.handleRayUp_();
+        this.rayHandler.handleRayUp_();
       });
       this.rayInput.rayInputEventEmitter.on('raydrag', () => { this.rayHandler.handleRayDrag_() });
-      // this.rayInput.rayInputEventEmitter.on('raycancel', (opt_mesh) => { this.rayHandler.handleRayCancel_(opt_mesh) });
-
       this.sceneBuilder = new SceneBuilder(this.scene, this.camera, this.physicsHandler, this.audioHandler);
     }
   }
@@ -190,7 +176,7 @@ export default class WebXRManager {
       console.log('Start presenting');
     this.renderer.vr.enabled = true;
     // @ts-ignore
-    this.renderer.xr.sessionActive = true;
+    this.sessionActive = true;
     console.log('Renderer - enable VR');
     this.renderer.setClearColor( 0xCCCCCC );
     this.camera.aspect = window.innerWidth / window.innerHeight;
