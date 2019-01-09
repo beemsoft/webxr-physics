@@ -55,15 +55,12 @@ export default class WebXRManager {
   private sceneBuilder: SceneBuilder;
   private rayHandler: RayHandler;
   private audioHandler: AudioHandler;
-  private device: any;
 
   constructor(display: VRDisplay, renderer: WebGLRenderer, camera: PerspectiveCamera, scene: Scene) {
     this.display = display;
     this.renderer = renderer;
     this.camera = camera;
     this.scene = scene;
-
-    console.log('renderer size: ' + JSON.stringify(this.renderer.getSize()));
     this.renderer.vr.setDevice(display);
     new WebXRPolyfill();
       // @ts-ignore
@@ -71,10 +68,7 @@ export default class WebXRManager {
       // @ts-ignore
       navigator.xr.requestDevice()
         .then((device) => {
-          this.device = device;
-          device.requestSession({
-            immersive: true
-          })
+          device.requestSession({ immersive: true })
             .then(session => {
               this.session = session;
               this.startPresenting();
@@ -84,9 +78,8 @@ export default class WebXRManager {
   }
 
   startSession(display) {
-    const createVirtualReality = true;
     const sessionInitParameters = {
-      exclusive: createVirtualReality,
+      exclusive: true,
       type: REALITY
     };
     if (this.sessionActive) {
@@ -97,62 +90,61 @@ export default class WebXRManager {
       this.session = null;
     }
 
-    display.requestSession(sessionInitParameters).then(session => {
-      this.session = session;
-      this.session.realityType = 'vr';
-      this.session.depthNear = 0.05;
-      this.session.depthFar = 1000.0;
-      this.domElementOriginal = this.renderer.domElement.parentNode;
-      this.cameraCloned = this.camera.clone();
-      if (this.camera.parent && this.camera.parent.type !== 'Scene') {
-        this.poseTarget = this.camera.parent;
-      } else {
-        this.poseTarget = this.camera;
-      }
-      this.poseTargetCloned = this.poseTarget.clone();
-      this.renderer.domElement.style.width = '100%';
-      this.renderer.domElement.style.height = '100%';
-    }).catch(err => {
+    display.requestSession(sessionInitParameters)
+      .then(session => {
+        this.session = session;
+        this.session.realityType = 'vr';
+        this.session.depthNear = 0.05;
+        this.session.depthFar = 1000.0;
+        this.renderer.domElement.style.width = '100%';
+        this.renderer.domElement.style.height = '100%';
+      }).catch(err => {
       console.error('Error requesting session', err);
     });
   };
 
-  initController() {
-    function getVRGamepad() {
-      let gamepads = navigator.getGamepads && navigator.getGamepads();
-      for (let i = 0; i < gamepads.length; i++) {
-        let gamepad = gamepads[i];
-        if (gamepad && gamepad.pose) {
-          console.log('gamepad: ' + gamepad.id);
-          return gamepad;
-        }
+  getVRGamepad = () => {
+    let gamepads = navigator.getGamepads && navigator.getGamepads();
+    for (let i = 0; i < gamepads.length; i++) {
+      let gamepad = gamepads[i];
+      if (gamepad && gamepad.pose) {
+        console.log('gamepad: ' + gamepad.id);
+        return gamepad;
       }
-      console.log('no gamepad found');
-      return null;
     }
-    this.gamepad = getVRGamepad();
+    console.log('no gamepad found');
+    return null;
+  };
+
+  initController() {
+    this.gamepad = this.getVRGamepad();
     if (this.gamepad) {
       this.rayInput = new RayInput(this.camera, this.gamepad);
-      let cameraGroup = new Group();
-      cameraGroup.position.set(0, 0, 0);
-      cameraGroup.add(this.camera);
-      cameraGroup.add(this.rayInput.getMesh());
-      this.scene.add(cameraGroup);
+      this.addCameraAndControllerToScene();
       this.physicsHandler = new PhysicsHandler(this.scene, this.rayInput);
       this.rayHandler = new RayHandler(this.scene, this.rayInput, this.physicsHandler);
-
       this.rayInput.rayInputEventEmitter.on('raydown', (opt_mesh) => {
         this.rayHandler.handleRayDown_(opt_mesh);
       });
       this.rayInput.rayInputEventEmitter.on('rayup', () => {
         this.rayHandler.handleRayUp_();
       });
-      this.rayInput.rayInputEventEmitter.on('raydrag', () => { this.rayHandler.handleRayDrag_() });
+      this.rayInput.rayInputEventEmitter.on('raydrag', () => {
+        this.rayHandler.handleRayDrag_()
+      });
       this.sceneBuilder = new SceneBuilder(this.scene, this.camera, this.physicsHandler, this.audioHandler);
     }
   }
 
-  render() {
+  private addCameraAndControllerToScene() {
+    let cameraGroup = new Group();
+    cameraGroup.position.set(0, 0, 0);
+    cameraGroup.add(this.camera);
+    cameraGroup.add(this.rayInput.getMesh());
+    this.scene.add(cameraGroup);
+  }
+
+  onXRFrame = () => {
     if (this.gamepad != null) {
       this.rayInput.update();
       this.sceneBuilder.update();
@@ -160,13 +152,8 @@ export default class WebXRManager {
     } else {
       this.initController();
     }
-  }
-
-  onXRFrame = (time, frame) => {
-    this.render();
-    let session = frame.session;
     this.renderer.render(this.scene, this.camera);
-    session.requestAnimationFrame(this.onXRFrame);
+    this.session.requestAnimationFrame(this.onXRFrame);
   };
 
   startPresenting() {

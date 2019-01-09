@@ -1,5 +1,4 @@
 import {PerspectiveCamera, Scene, WebGLRenderer} from 'three';
-import * as _ from 'lodash';
 import WebXRManager from './web-managers/WebXRManager';
 import WebPageManager from './web-managers/WebPageManager';
 
@@ -11,13 +10,7 @@ let camera: PerspectiveCamera;
 let display: VRDisplay;
 const dummyDisplay = 'Emulated HTC Vive DVT';
 
-function createElement() {
-    element = document.createElement('div');
-    element.innerHTML = _.join(['Hello', 'WebXR!'], ' ');
-    return element;
-}
-
-function getVrDisplay(allDisplays: VRDisplay[]) {
+function detectVrDisplay(allDisplays: VRDisplay[]) {
     let displays = allDisplays;
     for (let i = 0; i < displays.length; i++) {
         display = displays[i];
@@ -45,7 +38,6 @@ function addVrButton() {
 
     button.addEventListener('click', () => {
         webManager = new WebXRManager(display, renderer, camera, scene);
-
     });
 
     element.appendChild(button);
@@ -76,26 +68,23 @@ function initRenderer() {
         const container = document.createElement('div');
         document.body.appendChild(container);
         container.appendChild(renderer.domElement);
-
     }
-
     addOutputToPage();
-
     console.log('2) Initialized WebGL renderer')
 }
 
 navigator.getVRDisplays()
-    .then(function(displays) {
-        let display: VRDisplay = getVrDisplay(displays);
-        console.log('1) Detected VR display: ' + display.displayName);
+  .then(displays => {
+      let display: VRDisplay = detectVrDisplay(displays);
+      console.log('1) Detected VR display: ' + display.displayName);
 
-        if (display.displayName !== dummyDisplay) {
-            initRenderer();
-            addVrButton();
-        } else {
-            new WebPageManager();
-        }
-    });
+      if (display.displayName !== dummyDisplay) {
+          initRenderer();
+          addVrButton();
+      } else {
+          new WebPageManager();
+      }
+  });
 
-element = createElement();
+element = document.createElement('div');
 document.body.appendChild(element);
