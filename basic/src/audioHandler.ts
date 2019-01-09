@@ -18,7 +18,6 @@ export default class AudioHandler {
 
   constructor(scene) {
     this.scene = scene;
-
     let dimensions = {
       width: 10, height: 7, depth: 10,
     };
@@ -33,7 +32,6 @@ export default class AudioHandler {
   }
 
   initAudio() {
-    // Create <audio> streaming audio source.
     this.audioContext = new AudioContext();
     this.audioElement = document.createElement('audio');
     this.audioElement.src = cubeSound;
@@ -58,13 +56,11 @@ export default class AudioHandler {
   }
 
   setPosition(v) {
-    console.log('Position: ' + JSON.stringify(v));
     this.source.setPosition(v.x, v.y, v.z);
   }
 
   setVolume(v) {
     let distance = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
-    console.log('distance: ' + distance);
     let gain = 1 - distance / 10;
     // Clamp gain between 0 and 1.
     gain = Math.max(0, Math.min(1, gain));

@@ -16,9 +16,9 @@ export default class RayHandler {
 
   handleRayDown_(opt_mesh) {
     let pos = this.rayInput.renderer.reticle.position;
-    if(pos){
+    if (pos) {
       this.physicsHandler.constraintDown = true;
-      this.setClickMarker(pos.x,pos.y,pos.z);
+      this.setClickMarker(pos.x, pos.y, pos.z);
       this.physicsHandler.addPointerConstraintToMesh(pos, opt_mesh);
     }
   }
@@ -26,9 +26,9 @@ export default class RayHandler {
   handleRayDrag_() {
     if (this.physicsHandler.pointerConstraint) {
       let pos = this.rayInput.renderer.reticle.position;
-      if(pos){
-        this.setClickMarker(pos.x,pos.y,pos.z);
-        this.physicsHandler.moveJointToPoint(pos.x,pos.y,pos.z);
+      if (pos) {
+        this.setClickMarker(pos.x, pos.y, pos.z);
+        this.physicsHandler.moveJointToPoint(pos.x, pos.y, pos.z);
       }
     }
   }
@@ -40,15 +40,15 @@ export default class RayHandler {
     this.physicsHandler.removeJointConstraint();
   }
 
-  setClickMarker(x,y,z) {
-    if(!this.clickMarker){
+  setClickMarker(x, y, z) {
+    if (!this.clickMarker) {
       const shape = new SphereGeometry(0.05, 8, 8);
-      const markerMaterial = new MeshBasicMaterial({ color: 0xff0000 });
+      const markerMaterial = new MeshBasicMaterial({color: 0xff0000});
       this.clickMarker = new Mesh(shape, markerMaterial);
       this.scene.add(this.clickMarker);
     }
     this.clickMarker.visible = true;
-    this.clickMarker.position.set(x,y,z);
+    this.clickMarker.position.set(x, y, z);
   }
 
   removeClickMarker(){

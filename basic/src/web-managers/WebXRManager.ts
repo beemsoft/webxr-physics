@@ -148,7 +148,7 @@ export default class WebXRManager {
     if (this.gamepad != null) {
       this.rayInput.update();
       this.sceneBuilder.update();
-      this.physicsHandler.updatePhysics(this.gamepad);
+      this.physicsHandler.updatePhysics();
     } else {
       this.initController();
     }
