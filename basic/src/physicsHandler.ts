@@ -27,57 +27,48 @@
  */
 
 import {Body, NaiveBroadphase, PointToPointConstraint, Quaternion, Sphere, Vec3, World} from "cannon";
-import {Mesh, Scene, Vector3} from "three";
+import {Mesh, Vector3} from "three";
 import RayInput from './ray-input/ray-input';
 
 export default class PhysicsHandler {
-  private scene: Scene;
-  private rayInput: RayInput;
-  private dt: number;
-  private meshes: Mesh[];
-  private bodies: Body[];
+  private readonly rayInput: RayInput;
+  private readonly dt: number;
+  private readonly meshes: Mesh[];
+  private readonly bodies: Body[];
   private jointBody: Body;
   private world: World;
   pointerConstraint: PointToPointConstraint;
   constraintDown: boolean;
   private constrainedBody: Body;
 
-  constructor(scene: Scene, rayInput: RayInput) {
-    this.scene = scene;
+  constructor(rayInput: RayInput) {
     this.rayInput = rayInput;
     this.dt = 1 / 610;
-    let world;
-
-    // To be synced
-    let bodies: Body[] = new Array<Body>();
     this.meshes = new Array<Mesh>();
-    this.bodies = bodies;
-    let axes = [];
-    axes[0] = {
-      value: [0, 0]
-    };
+    this.bodies = new Array<Body>();
+    this.addWorld();
+    this.addJointBody();
+    this.pointerConstraint = null;
+    this.constraintDown = false
+  }
 
-    world = new World();
+  private addWorld() {
+    let world = new World();
     world.quatNormalizeSkip = 0;
     world.quatNormalizeFast = false;
-    world.gravity.set(0, 0 ,0);
+    world.gravity.set(0, 0, 0);
     world.broadphase = new NaiveBroadphase();
+    this.world = world;
+  }
 
-    let constraintDown = false;
-    let jointBody;
-
-    // Joint body
+  private addJointBody() {
     let shape = new Sphere(0.1);
-    jointBody = new Body({ mass: 0 });
+    let jointBody = new Body({mass: 0});
     jointBody.addShape(shape);
     jointBody.collisionFilterGroup = 0;
     jointBody.collisionFilterMask = 0;
-    world.addBody(jointBody);
-
+    this.world.addBody(jointBody);
     this.jointBody = jointBody;
-    this.pointerConstraint = null;
-    this.world = world;
-    this.constraintDown = constraintDown;
   }
 
   updatePhysics() {
@@ -97,7 +88,6 @@ export default class PhysicsHandler {
 
   addMesh(mesh: Mesh) {
     this.meshes.push(mesh);
-    this.scene.add(mesh);
     if (this.rayInput != null) {
       this.rayInput.add(mesh);
     }

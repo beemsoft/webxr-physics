@@ -119,7 +119,7 @@ export default class WebXRManager {
     if (this.gamepad) {
       this.rayInput = new RayInput(this.camera, this.gamepad);
       this.addCameraAndControllerToScene();
-      this.physicsHandler = new PhysicsHandler(this.scene, this.rayInput);
+      this.physicsHandler = new PhysicsHandler(this.rayInput);
       this.rayHandler = new RayHandler(this.scene, this.rayInput, this.physicsHandler);
       this.rayInput.rayInputEventEmitter.on('raydown', (opt_mesh) => {
         this.rayHandler.handleRayDown_(opt_mesh);

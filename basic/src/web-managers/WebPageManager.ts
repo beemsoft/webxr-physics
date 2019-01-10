@@ -29,7 +29,7 @@ export default class WebPageManager {
     this.addTrackBallControls();
     this.addOutputToPage();
     window.addEventListener( 'resize', this.onWindowResize, false );
-    this.physicsHandler = new PhysicsHandler(this.scene, null);
+    this.physicsHandler = new PhysicsHandler(null);
     this.sceneBuilder = new SceneManager(this.scene, this.camera, this.physicsHandler);
     render();
   }

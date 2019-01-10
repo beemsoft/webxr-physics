@@ -29,6 +29,7 @@ export default class SceneManager {
     const material = new MeshNormalMaterial();
     this.cube = new Mesh(geometry, material);
     this.cube.rotation.y = Math.PI / 4;
+    this.scene.add(this.cube);
     this.physicsHandler.addMesh(this.cube);
     const cubeBody = new Body({mass: 1, position: new Vec3(0, 1, -1.5)});
     this.physicsHandler.addBody(cubeBody);
