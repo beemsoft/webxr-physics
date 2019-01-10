@@ -42,14 +42,14 @@ function addVrButton() {
 
     element.appendChild(button);
     console.log('3) Display VR button');
-        window.addEventListener('vrdisplaypresentchange', (evt: CustomEvent) => {
-            // @ts-ignore
-            const display = evt.display;
-            if (!display.isPresenting) {
-                webManager.endSession();
-                document.getElementById('buttonsContainer').style.display = 'block';
-            }
-        });
+    window.addEventListener('vrdisplaypresentchange', (evt: CustomEvent) => {
+        // @ts-ignore
+        const display = evt.display;
+        if (!display.isPresenting) {
+            webManager.endSession();
+            document.getElementById('buttonsContainer').style.display = 'block';
+        }
+    });
 
     return button;
 }
