@@ -30,9 +30,8 @@
 import {Group, PerspectiveCamera, Scene, WebGLRenderer} from 'three';
 import WebXRPolyfill from 'webxr-polyfill';
 import PhysicsHandler from '../physicsHandler';
-import SceneBuilder from '../sceneBuilder';
+import SceneManager from '../sceneManager';
 import RayHandler from '../rayHandler';
-import AudioHandler from '../audioHandler';
 import RayInput from '../ray-input/ray-input';
 
 const REALITY = 'reality';
@@ -52,9 +51,8 @@ export default class WebXRManager {
   private gamepad: Gamepad;
   private rayInput: RayInput;
   private physicsHandler: PhysicsHandler;
-  private sceneBuilder: SceneBuilder;
+  private sceneBuilder: SceneManager;
   private rayHandler: RayHandler;
-  private audioHandler: AudioHandler;
 
   constructor(display: VRDisplay, renderer: WebGLRenderer, camera: PerspectiveCamera, scene: Scene) {
     this.display = display;
@@ -132,7 +130,8 @@ export default class WebXRManager {
       this.rayInput.rayInputEventEmitter.on('raydrag', () => {
         this.rayHandler.handleRayDrag_()
       });
-      this.sceneBuilder = new SceneBuilder(this.scene, this.camera, this.physicsHandler, this.audioHandler);
+      this.sceneBuilder = new SceneManager(this.scene, this.camera, this.physicsHandler);
+      this.sceneBuilder.enableAudio();
     }
   }
 
@@ -168,9 +167,6 @@ export default class WebXRManager {
     console.log('Request present VR display');
     this.display.requestPresent([{source: this.renderer.domElement}])
     .then(() => {
-      this.audioHandler = new AudioHandler(this.scene);
-      this.audioHandler.initAudio();
-      this.audioHandler.audioElement.play();
       this.session.requestAnimationFrame(this.onXRFrame);
     });
   };

@@ -1,14 +1,14 @@
 import {PerspectiveCamera, Scene, WebGLRenderer} from 'three';
 import TrackballControls from 'three-trackballcontrols';
 import PhysicsHandler from '../physicsHandler';
-import SceneBuilder from '../sceneBuilder';
+import SceneManager from '../sceneManager';
 
 export default class WebPageManager {
   private camera: PerspectiveCamera;
   private renderer: WebGLRenderer;
   private scene: Scene;
   private physicsHandler: PhysicsHandler;
-  private sceneBuilder: SceneBuilder;
+  private sceneBuilder: SceneManager;
   private controls: TrackballControls;
 
   constructor() {
@@ -43,7 +43,7 @@ export default class WebPageManager {
 
     console.log('2) Initialized WebGL renderer');
     this.physicsHandler = new PhysicsHandler(this.scene, null);
-    this.sceneBuilder = new SceneBuilder(this.scene, this.camera, this.physicsHandler, null);
+    this.sceneBuilder = new SceneManager(this.scene, this.camera, this.physicsHandler);
     render();
   }
 
