@@ -1,6 +1,6 @@
 import {Mesh, MeshBasicMaterial, Scene, SphereGeometry} from 'three';
-import PhysicsHandler from './physicsHandler';
-import RayInput from './ray-input/ray-input';
+import PhysicsHandler from '../physics/physicsHandler';
+import RayInput from './ray-input';
 
 export default class RayHandler {
   private scene: Scene;
@@ -36,8 +36,6 @@ export default class RayHandler {
   handleRayUp_() {
     this.physicsHandler.constraintDown = false;
     this.removeClickMarker();
-
-    this.physicsHandler.removeJointConstraint();
   }
 
   setClickMarker(x, y, z) {

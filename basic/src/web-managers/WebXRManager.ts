@@ -29,25 +29,23 @@
 
 import {Group, PerspectiveCamera, Scene, WebGLRenderer} from 'three';
 import WebXRPolyfill from 'webxr-polyfill';
-import PhysicsHandler from '../physicsHandler';
-import SceneManager from '../sceneManager';
-import RayHandler from '../rayHandler';
+import PhysicsHandler from '../physics/physicsHandler';
+import SceneManager from '../scene/sceneManager';
+import RayHandler from '../ray-input/rayHandler';
 import RayInput from '../ray-input/ray-input';
+import SceneWithAudioManager from '../scene/sceneWithAudioManager';
+import PhysicsWithRayInputHandler from '../physics/physicsWithRayInputHandler';
 
 const REALITY = 'reality';
 
 export default class WebXRManager {
-  private camera: PerspectiveCamera;
+  private readonly camera: PerspectiveCamera;
   private display: VRDisplay;
   private renderer: WebGLRenderer;
-  private scene: Scene;
+  private readonly scene: Scene;
 
   sessionActive = false;
   private session = null;
-  private poseTarget: any;
-  private domElementOriginal: any;
-  private cameraCloned: PerspectiveCamera;
-  private poseTargetCloned: any;
   private gamepad: Gamepad;
   private rayInput: RayInput;
   private physicsHandler: PhysicsHandler;
@@ -119,7 +117,7 @@ export default class WebXRManager {
     if (this.gamepad) {
       this.rayInput = new RayInput(this.camera, this.gamepad);
       this.addCameraAndControllerToScene();
-      this.physicsHandler = new PhysicsHandler(this.rayInput);
+      this.physicsHandler = new PhysicsWithRayInputHandler(this.rayInput);
       this.rayHandler = new RayHandler(this.scene, this.rayInput, this.physicsHandler);
       this.rayInput.rayInputEventEmitter.on('raydown', (opt_mesh) => {
         this.rayHandler.handleRayDown_(opt_mesh);
@@ -130,8 +128,7 @@ export default class WebXRManager {
       this.rayInput.rayInputEventEmitter.on('raydrag', () => {
         this.rayHandler.handleRayDrag_()
       });
-      this.sceneBuilder = new SceneManager(this.scene, this.camera, this.physicsHandler);
-      this.sceneBuilder.enableAudio();
+      this.sceneBuilder = new SceneWithAudioManager(this.scene, this.camera, this.physicsHandler);
     }
   }
 
@@ -158,7 +155,6 @@ export default class WebXRManager {
   startPresenting() {
     console.log('Start presenting');
     this.renderer.vr.enabled = true;
-    // @ts-ignore
     this.sessionActive = true;
     console.log('Renderer - enable VR');
     this.renderer.setClearColor( 0xCCCCCC );
@@ -175,14 +171,11 @@ export default class WebXRManager {
     this.session.end();
     this.sessionActive = false;
     this.renderer.vr.enabled = false;
-    this.display.exitPresent();
-    this.domElementOriginal.appendChild(this.session.baseLayer._context.canvas);
-    this.poseTarget.matrixAutoUpdate = false;
-    this.poseTarget.matrix.copy(this.poseTargetCloned.matrix);
-    this.poseTarget.updateMatrixWorld(true);
-    this.camera.matrixWorldInverse.copy(this.cameraCloned.matrixWorldInverse);
-    this.camera.projectionMatrix.copy(this.cameraCloned.projectionMatrix);
-    this.camera.updateProjectionMatrix();
+    this.display.exitPresent()
+      .then(() => {
+        console.log('Exit present VR display');
+        this.camera.updateProjectionMatrix();
+    });
   };
 }
 

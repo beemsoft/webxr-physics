@@ -1,6 +1,6 @@
 import {ResonanceAudio, Source} from "resonance-audio";
 // @ts-ignore
-import cubeSound from '../../js/resources/cube-sound.wav';
+import cubeSound from '../../../js/resources/cube-sound.wav';
 
 export default class AudioHandler {
   
@@ -15,9 +15,7 @@ export default class AudioHandler {
   private source: Source;
 
   constructor() {
-    let dimensions = {
-      width: 10, height: 7, depth: 10,
-    };
+    let dimensions = {width: 10, height: 7, depth: 10};
     let materials = {
       left: 'uniform', right: 'uniform',
       front: 'uniform', back: 'uniform',

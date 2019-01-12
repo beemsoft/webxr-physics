@@ -1,27 +1,19 @@
-import {BackSide, BoxGeometry, Clock, Mesh, MeshNormalMaterial, Scene, SphereGeometry,} from 'three';
+import {BackSide, BoxGeometry, Clock, Mesh, MeshNormalMaterial, PerspectiveCamera, Scene, SphereGeometry} from 'three';
 import {Body, Vec3} from 'cannon';
-import AudioHandler from './audioHandler';
+import PhysicsHandler from '../physics/physicsHandler';
 
 export default class SceneManager {
   private scene: Scene;
   private camera;
   private physicsHandler;
-  private audioHandler;
-  private cube: Mesh;
+  protected cube: Mesh;
   private clock: Clock = new Clock();
-  private isAudioEnabled = false;
 
-  constructor(scene, camera, physicsHandler) {
+  constructor(scene: Scene, camera: PerspectiveCamera, physicsHandler: PhysicsHandler) {
     this.scene = scene;
     this.camera = camera;
     this.physicsHandler = physicsHandler;
     this.build();
-  }
-
-  enableAudio() {
-    this.audioHandler = new AudioHandler();
-    this.audioHandler.initAudio();
-    this.audioHandler.audioElement.play();
   }
 
   build() {
@@ -42,10 +34,5 @@ export default class SceneManager {
   update() {
     let delta = this.clock.getDelta() * 60;
     this.cube.rotation.y += delta * 0.01;
-
-    if (this.isAudioEnabled) {
-      this.audioHandler.setPosition(this.cube.position);
-      this.audioHandler.setVolume(this.cube.position);
-    }
   }
 }

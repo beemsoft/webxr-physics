@@ -28,10 +28,9 @@
 
 import {Body, NaiveBroadphase, PointToPointConstraint, Quaternion, Sphere, Vec3, World} from "cannon";
 import {Mesh, Vector3} from "three";
-import RayInput from './ray-input/ray-input';
+import RayInput from '../ray-input/ray-input';
 
 export default class PhysicsHandler {
-  private readonly rayInput: RayInput;
   private readonly dt: number;
   private readonly meshes: Mesh[];
   private readonly bodies: Body[];
@@ -41,8 +40,7 @@ export default class PhysicsHandler {
   constraintDown: boolean;
   private constrainedBody: Body;
 
-  constructor(rayInput: RayInput) {
-    this.rayInput = rayInput;
+  constructor() {
     this.dt = 1 / 610;
     this.meshes = new Array<Mesh>();
     this.bodies = new Array<Body>();
@@ -88,9 +86,6 @@ export default class PhysicsHandler {
 
   addMesh(mesh: Mesh) {
     this.meshes.push(mesh);
-    if (this.rayInput != null) {
-      this.rayInput.add(mesh);
-    }
   }
 
   addBody(body: Body) {
