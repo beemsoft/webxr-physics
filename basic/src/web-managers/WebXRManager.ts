@@ -36,8 +36,6 @@ import RayInput from '../ray-input/ray-input';
 import SceneWithAudioManager from '../scene/sceneWithAudioManager';
 import PhysicsWithRayInputHandler from '../physics/physicsWithRayInputHandler';
 
-const REALITY = 'reality';
-
 export default class WebXRManager {
   private readonly camera: PerspectiveCamera;
   private display: VRDisplay;
@@ -61,6 +59,7 @@ export default class WebXRManager {
     new WebXRPolyfill();
       // @ts-ignore
     if (navigator.xr) {
+      document.body.appendChild( renderer.domElement );
       // @ts-ignore
       navigator.xr.requestDevice()
         .then((device) => {
@@ -72,32 +71,6 @@ export default class WebXRManager {
         });
     }
   }
-
-  startSession(display) {
-    const sessionInitParameters = {
-      exclusive: true,
-      type: REALITY
-    };
-    if (this.sessionActive) {
-      return;
-    }
-    if (this.session !== null) {
-      this.session.end();
-      this.session = null;
-    }
-
-    display.requestSession(sessionInitParameters)
-      .then(session => {
-        this.session = session;
-        this.session.realityType = 'vr';
-        this.session.depthNear = 0.05;
-        this.session.depthFar = 1000.0;
-        this.renderer.domElement.style.width = '100%';
-        this.renderer.domElement.style.height = '100%';
-      }).catch(err => {
-      console.error('Error requesting session', err);
-    });
-  };
 
   getVRGamepad = () => {
     let gamepads = navigator.getGamepads && navigator.getGamepads();
@@ -171,11 +144,6 @@ export default class WebXRManager {
     this.session.end();
     this.sessionActive = false;
     this.renderer.vr.enabled = false;
-    this.display.exitPresent()
-      .then(() => {
-        console.log('Exit present VR display');
-        this.camera.updateProjectionMatrix();
-    });
   };
 }
 

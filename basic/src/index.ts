@@ -42,15 +42,6 @@ function addVrButton() {
 
   element.appendChild(button);
   console.log('3) Display VR button');
-  window.addEventListener('vrdisplaypresentchange', (evt: CustomEvent) => {
-    // @ts-ignore
-    const display = evt.display;
-    if (!display.isPresenting) {
-      webManager.endSession();
-      document.getElementById('buttonsContainer').style.display = 'block';
-    }
-  });
-
   return button;
 }
 
@@ -59,18 +50,9 @@ function initRenderer() {
   camera = new PerspectiveCamera();
   scene.add(camera);
   camera.position.set(0, 1, 0);
-
   renderer = new WebGLRenderer({alpha: true});
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.autoClear = false;
-
-  function addOutputToPage() {
-    const container = document.createElement('div');
-    document.body.appendChild(container);
-    container.appendChild(renderer.domElement);
-  }
-
-  addOutputToPage();
   console.log('2) Initialized WebGL renderer')
 }
 
