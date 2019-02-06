@@ -6,7 +6,7 @@ export default class HumanFaceManager {
 
   private loadFaceModel(objLoader: OBJLoader, faceModel: string): Promise<Mesh> {
     return new Promise(resolve => {
-      objLoader.load('assets/'+faceModel+'.obj', (object) => {
+      objLoader.load('../assets/'+faceModel+'.obj', (object) => {
         object.children[0].geometry.scale(0.003, 0.003, 0.003);
         object.children[0].position.set(0, 1.75, -2);
         object.children[1].geometry.scale(0.003, 0.003, 0.003);
@@ -21,7 +21,7 @@ export default class HumanFaceManager {
     let objLoader = new OBJLoader();
 
     return new Promise(resolve => {
-      mtlLoader.load('assets/v332_obj.mtl', (materials) => {
+      mtlLoader.load('../assets/v332_obj.mtl', (materials) => {
         materials.preload();
         for (let key in materials.materials) {
           if (materials.materials[key].map != null) {
