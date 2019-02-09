@@ -19,7 +19,7 @@
  */
 
 import OrientationArmModel from './orientation-arm-model'
-import EventEmitter from 'eventemitter3'
+import {EventEmitter} from 'eventemitter3'
 import RayController from './ray-controller'
 import {Camera, PerspectiveCamera, Quaternion, Vector2, Vector3} from "three";
 import RayRenderer from './ray-renderer';

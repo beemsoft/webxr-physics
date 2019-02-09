@@ -1,6 +1,7 @@
 import {PerspectiveCamera, Scene, WebGLRenderer} from 'three';
 import WebXRManager from './web-managers/WebXRManager';
 import WebPageManager from './web-managers/WebPageManager';
+import WebXRPolyfill from 'webxr-polyfill';
 
 let element: HTMLElement;
 let renderer: WebGLRenderer;
@@ -59,9 +60,7 @@ function initRenderer() {
 navigator.getVRDisplays()
   .then(displays => {
     let display: VRDisplay = detectVrDisplay(displays);
-    console.log('1) Detected VR display: ' + display.displayName);
-
-    if (display.displayName !== dummyDisplay) {
+    if (!!display && display.displayName !== dummyDisplay) {
       initRenderer();
       addVrButton();
     } else {

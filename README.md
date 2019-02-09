@@ -17,6 +17,9 @@ Tested with Oculus Go headset + controller
 [Cannon.js]: http://www.cannonjs.org/
 [Resonance-audio]: https://github.com/resonance-audio/resonance-audio-web-sdk
 
+## Prerequisite
+
+In Chrome, enable WebVR in the chrome://flags page.
 
 ## Usage
 
