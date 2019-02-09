@@ -5,7 +5,7 @@ newmtl Texture0
     Kd 0.7 0.7 0.7
     Ks 0 0 0
     Ka 0 0 0
-    map_Kd assets/v332_obj_HeadHires.png
+    map_Kd ../assets/head/v332_obj_HeadHires.png
 
 newmtl Texture1
     Ns 20
@@ -14,5 +14,5 @@ newmtl Texture1
     Kd 0.7 0.7 0.7
     Ks 0 0 0
     Ka 0 0 0
-    map_Kd assets/v332_obj_Mouth.png
+    map_Kd ../assets/head/v332_obj_Mouth.png
 

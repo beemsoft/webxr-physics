@@ -14,6 +14,7 @@
     "@types/cannon": "^0.1.3",
     "@types/three": "=0.93.13",
     "cannon": "^0.6.2",
+    "eventemitter3": "^1.2.0",
     "plugin-typescript": "^8.0.0",
     "require": "^2.4.20",
     "resonance-audio": "^1.0.0",
