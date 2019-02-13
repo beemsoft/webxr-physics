@@ -1,19 +1,22 @@
 import {
   AmbientLight,
-  BackSide, BoxGeometry,
-  Clock, CylinderGeometry,
-  DirectionalLight, Face3, Geometry, Matrix4,
-  Mesh, MeshLambertMaterial,
-  MeshNormalMaterial, Object3D,
-  PerspectiveCamera, PlaneGeometry,
+  BoxGeometry,
+  Clock,
+  DirectionalLight,
+  Face3,
+  Geometry,
+  Mesh,
+  MeshLambertMaterial,
+  Object3D,
+  PerspectiveCamera,
+  PlaneGeometry,
   Scene,
-  SphereGeometry, Vector3
+  SphereGeometry,
+  Vector3
 } from 'three';
 import {Body, Box, ConeTwistConstraint, Shape, Sphere, Vec3} from 'cannon';
 import PhysicsHandler from '../physics/physicsHandler';
 import {MTLLoader, OBJLoader} from 'three-obj-mtl-loader'
-import HumanFaceManager from './human/humanFaceManager';
-import HumanArmManager from './human/humanArmManager';
 
 export default class SceneManager {
   private scene: Scene;
@@ -21,69 +24,13 @@ export default class SceneManager {
   private physicsHandler: PhysicsHandler;
   protected cube: Mesh;
   private clock = new Clock();
-  private humanFaceManager = new HumanFaceManager();
-  private humanArmManager = new HumanArmManager();
 
   constructor(scene: Scene, camera: PerspectiveCamera, physicsHandler: PhysicsHandler) {
     this.scene = scene;
     this.camera = camera;
     this.physicsHandler = physicsHandler;
     this.build();
-    this.humanFaceManager.loadFaceModels()
-      .then(this.addFace);
-    this.humanArmManager.loadArmModels()
-      .then(this.addArm);
   }
-
-  replaceHead = (faceModelName: string) => {
-    let object = this.humanFaceManager.faceModels.get(faceModelName);
-    object.position.copy(this.cube.position);
-    object.quaternion.copy(this.cube.quaternion);
-    object.rotation.copy(this.cube.rotation);
-    this.scene.remove(this.cube);
-    this.physicsHandler.replaceMesh(this.cube, object);
-    this.scene.add(object);
-    this.cube = object;
-  };
-
-  addArm = () => {
-    let rightArm = this.humanArmManager.armModels.get('main');
-    rightArm.children[0].position.set(-0.7, 0.3, -2);
-    rightArm.children[0].rotateX(-Math.PI/2);
-    let leftArm = rightArm.clone();
-    leftArm.position.set(0.7, 0.3, -2);
-    leftArm.applyMatrix(new Matrix4().makeScale(-1, 1, 1));
-    this.scene.add(rightArm);
-    this.scene.add(leftArm);
-    let leftArmGeometry = new CylinderGeometry(0.1, 0.1, 1.7);
-    let material = new MeshLambertMaterial( { color: 0x777777 } );
-
-    // Moet Cannon body worden
-    let mesh = new Mesh( leftArmGeometry, material );
-    mesh.position.set(-0.7, 0.3, -2);
-    mesh.rotateZ(-Math.PI/8);
-    // mesh.rotateY(Math.PI/4);
-    mesh.rotateX(-Math.PI/10);
-    this.scene.add(mesh);
-    this.physicsHandler.addMesh(rightArm);
-    const cubeBody = new Body({mass: 1, position: new Vec3(0, 0, -1.5)});
-    this.physicsHandler.addBody(cubeBody);
-  };
-
-  addFace = () => {
-    let object = this.humanFaceManager.faceModels.get('main');
-    this.scene.add(object);
-    this.cube = object;
-    this.physicsHandler.addMesh(this.cube);
-    const faceGeometry = new BoxGeometry(0.2, 0.2);
-    let material = new MeshLambertMaterial( { color: 0x777777 } );
-    let mesh = new Mesh( faceGeometry, material );
-    mesh.position.set(0, 0, -1.5);
-    this.scene.add(mesh);
-    const cubeBody = new Body({mass: 1, position: new Vec3(0, 0, -1.5)});
-    this.physicsHandler.addBody(cubeBody);
-    this.sayWelcome();
-  };
 
   shape2mesh(body, material) {
     let j;
@@ -434,53 +381,9 @@ export default class SceneManager {
     this.scene.add(light);
 
     this.createRagdoll();
-    // const skyGeometry = new SphereGeometry(5);
-    // const skyMaterial = new MeshNormalMaterial({side: BackSide});
-    // const sky = new Mesh(skyGeometry, skyMaterial);
-    // this.scene.add(sky);
   };
 
   update() {
-    let delta = this.clock.getDelta() * 60;
-    if (this.cube) {
-      // this.cube.rotation.y += delta * 0.01;
-    }
   }
 
-  sayPhoneme(phoneme)  {
-    return new Promise(resolve => {
-      setTimeout(() => {
-        if (this.humanFaceManager.faceModels.has('Phoneme'+phoneme)) {
-          // console.log('Say: ' + phoneme);
-          this.replaceHead('Phoneme' + phoneme);
-        }
-        resolve();
-      }, 105)
-    })
-  };
-
-  sayWelcome() {
-    this.sayPhoneme('W')
-      .then(() => this.sayPhoneme('eh'))
-      .then(() => this.sayPhoneme('K'))
-      .then(() => this.sayPhoneme('aah'))
-      .then(() => this.sayPhoneme('B,M,P'))
-      .then(() => this.sayPhoneme('D,S,T'))
-      .then(() => this.sayPhoneme('ooh,Q'))
-      .then(() => this.sayPhoneme('W'))
-      .then(() => this.sayPhoneme('eh'))
-      .then(() => this.sayPhoneme('B,M,P'))
-      .then(() => this.sayPhoneme('eh'))
-      .then(() => this.sayPhoneme('K'))
-      .then(() => this.sayPhoneme('D,S,T'))
-      .then(() => this.sayPhoneme('aah'))
-      .then(() => this.sayPhoneme('F,V'))
-      .then(() => this.sayPhoneme('i'))
-      .then(() => this.sayPhoneme('D,S,T'))
-      .then(() => this.sayPhoneme('i'))
-      .then(() => this.sayPhoneme('K'))
-      .then(() => this.sayPhoneme('D,S,T'))
-      .then(() => this.replaceHead('main'))
-      .then(() => this.sayWelcome());
-  }
 }
