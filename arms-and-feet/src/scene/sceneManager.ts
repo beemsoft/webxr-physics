@@ -24,7 +24,7 @@ import HumanArmManager from './human/humanArmManager';
 export default class SceneManager {
   private scene: Scene;
   private physicsHandler: PhysicsHandler;
-  protected cube: Mesh;
+  protected humanHeadMesh: Mesh;
   private clock = new Clock();
   private humanFaceManager = new HumanFaceManager();
   private humanArmManager = new HumanArmManager();
@@ -41,13 +41,13 @@ export default class SceneManager {
 
   replaceHead = (faceModelName: string) => {
     let object = this.humanFaceManager.faceModels.get(faceModelName);
-    object.position.copy(this.cube.position);
-    object.quaternion.copy(this.cube.quaternion);
-    object.rotation.copy(this.cube.rotation);
-    this.scene.remove(this.cube);
-    this.physicsHandler.replaceMesh(this.cube, object);
+    object.position.copy(this.humanHeadMesh.position);
+    object.quaternion.copy(this.humanHeadMesh.quaternion);
+    object.rotation.copy(this.humanHeadMesh.rotation);
+    this.scene.remove(this.humanHeadMesh);
+    this.physicsHandler.replaceMesh(this.humanHeadMesh, object);
     this.scene.add(object);
-    this.cube = object;
+    this.humanHeadMesh = object;
   };
 
   addArm = () => {
@@ -75,17 +75,8 @@ export default class SceneManager {
   };
 
   addFace = () => {
-    let object = this.humanFaceManager.faceModels.get('main');
-    this.scene.add(object);
-    this.cube = object;
-    this.physicsHandler.addMesh(this.cube);
-    const faceGeometry = new BoxGeometry(0.2, 0.2);
-    let material = new MeshLambertMaterial( { color: 0x777777 } );
-    let mesh = new Mesh( faceGeometry, material );
-    mesh.position.set(0, 0, -1.5);
-    this.scene.add(mesh);
-    const cubeBody = new Body({mass: 1, position: new Vec3(0, 0, -1.5)});
-    this.physicsHandler.addBody(cubeBody);
+    this.humanHeadMesh = this.humanFaceManager.faceModels.get('main');
+    this.createRagdoll();
     this.sayWelcome();
   };
 
@@ -327,7 +318,9 @@ export default class SceneManager {
     });
     head.addShape(headShape);
     this.physicsHandler.addBody(head);
-    this.addVisual(head, positionHead);
+    this.humanHeadMesh.position.set(positionHead.x, positionHead.y, positionHead.z);
+    this.scene.add(this.humanHeadMesh);
+    this.physicsHandler.addMesh(this.humanHeadMesh);
     this.physicsHandler.addConstraintToBody(-0.5,3,0, head);
 
     // Upper arms
@@ -440,19 +433,9 @@ export default class SceneManager {
     let light = new DirectionalLight(0xFFFFFF, 1);
     light.position.set(0, 2, 1).normalize();
     this.scene.add(light);
-
-    this.createRagdoll();
-    // const skyGeometry = new SphereGeometry(5);
-    // const skyMaterial = new MeshNormalMaterial({side: BackSide});
-    // const sky = new Mesh(skyGeometry, skyMaterial);
-    // this.scene.add(sky);
   };
 
   update() {
-    let delta = this.clock.getDelta() * 60;
-    if (this.cube) {
-      // this.cube.rotation.y += delta * 0.01;
-    }
   }
 
   sayPhoneme(phoneme)  {

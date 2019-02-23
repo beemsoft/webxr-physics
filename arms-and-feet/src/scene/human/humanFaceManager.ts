@@ -8,9 +8,7 @@ export default class HumanFaceManager {
     return new Promise(resolve => {
       objLoader.load('../assets/head/'+faceModel+'.obj', (object) => {
         object.children[0].geometry.scale(0.003, 0.003, 0.003);
-        object.children[0].position.set(0, 1.75, -2);
         object.children[1].geometry.scale(0.003, 0.003, 0.003);
-        object.children[1].position.set(0, 1.75, -2);
         resolve(object);
       })
     })

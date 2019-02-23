@@ -24,9 +24,9 @@ export default class SceneWithAudioManager extends SceneManager {
 
   update() {
     super.update();
-    if (this.cube) {
-      this.audioHandler.setPosition(this.cube.position.sub(this.cameraGroup.position));
-      this.audioHandler.setVolume(this.cube.position.sub(this.cameraGroup.position));
+    if (this.humanHeadMesh) {
+      this.audioHandler.setPosition(this.humanHeadMesh.position.sub(this.cameraGroup.position));
+      this.audioHandler.setVolume(this.humanHeadMesh.position.sub(this.cameraGroup.position));
     }
   }
 
