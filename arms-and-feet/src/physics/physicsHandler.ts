@@ -59,13 +59,17 @@ export default class PhysicsHandler {
   }
 
   private addJointBody() {
+    this.jointBody = this.createJointBody();
+  }
+
+  private createJointBody(): Body {
     let shape = new Sphere(0.1);
-    let jointBody = new Body({mass: 0});
+    let jointBody = new Body({ mass: 0 });
     jointBody.addShape(shape);
     jointBody.collisionFilterGroup = 0;
     jointBody.collisionFilterMask = 0;
     this.world.addBody(jointBody);
-    this.jointBody = jointBody;
+    return jointBody;
   }
 
   updatePhysics() {
@@ -108,9 +112,8 @@ export default class PhysicsHandler {
   }
 
   removeJointConstraint(){
-    // Remove constraint from world
     this.world.removeConstraint(this.pointerConstraint);
-    // this.pointerConstraint = false;
+    this.pointerConstraint = null;
     // this.touchPadPosition = { x: 0, z: 0 };
   }
 
@@ -134,6 +137,24 @@ export default class PhysicsHandler {
 
     // Add the constraint to world
     this.world.addConstraint(this.pointerConstraint);
+  }
+
+  addConstraintToBody(x: number, y: number, z: number, constrainedBody: Body) {
+    // Vector to the clicked point, relative to the body
+    let v1 = new Vec3(x,y,z).vsub(constrainedBody.position);
+
+    // Apply anti-quaternion to vector to transform it into the local body coordinate system
+    let antiRot = constrainedBody.quaternion.inverse();
+    let pivot = new Quaternion(antiRot.x, antiRot.y, antiRot.z, antiRot.w).vmult(v1); // pivot is not in local body coordinates
+
+    let jointBody = this.createJointBody();
+    jointBody.position.set(x,y,z);
+
+    // Create a new constraint
+    // The pivot for the jointBody is zero
+    const constraint = new PointToPointConstraint(constrainedBody, pivot, jointBody, new Vec3(0,0,0));
+
+    this.world.addConstraint(constraint);
   }
 
   // This function moves the transparent joint body to a new position in space

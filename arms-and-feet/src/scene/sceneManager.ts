@@ -1,13 +1,19 @@
 import {
   AmbientLight,
-  BackSide, BoxGeometry,
-  Clock, CylinderGeometry,
-  DirectionalLight, Face3, Geometry, Matrix4,
-  Mesh, MeshLambertMaterial,
-  MeshNormalMaterial, Object3D,
-  PerspectiveCamera, PlaneGeometry,
+  BoxGeometry,
+  Clock,
+  CylinderGeometry,
+  DirectionalLight,
+  Face3,
+  Geometry,
+  Matrix4,
+  Mesh,
+  MeshLambertMaterial,
+  Object3D,
+  PlaneGeometry,
   Scene,
-  SphereGeometry, Vector3
+  SphereGeometry,
+  Vector3
 } from 'three';
 import {Body, Box, ConeTwistConstraint, Shape, Sphere, Vec3} from 'cannon';
 import PhysicsHandler from '../physics/physicsHandler';
@@ -17,16 +23,14 @@ import HumanArmManager from './human/humanArmManager';
 
 export default class SceneManager {
   private scene: Scene;
-  private camera: PerspectiveCamera;
   private physicsHandler: PhysicsHandler;
   protected cube: Mesh;
   private clock = new Clock();
   private humanFaceManager = new HumanFaceManager();
   private humanArmManager = new HumanArmManager();
 
-  constructor(scene: Scene, camera: PerspectiveCamera, physicsHandler: PhysicsHandler) {
+  constructor(scene: Scene, physicsHandler: PhysicsHandler) {
     this.scene = scene;
-    this.camera = camera;
     this.physicsHandler = physicsHandler;
     this.build();
     this.humanFaceManager.loadFaceModels()
@@ -274,6 +278,9 @@ export default class SceneManager {
     this.addVisual(lowerLeftLeg, positionLowerLeftLeg);
     this.addVisual(lowerRightLeg, positionLowerRightLeg);
 
+    this.physicsHandler.addConstraintToBody(-1,0,0, lowerLeftLeg);
+    this.physicsHandler.addConstraintToBody(0,0,0, lowerRightLeg);
+
     // Upper legs
     const positionUpperLeftLeg = new Vec3(-shouldersDistance/2,lowerLeftLeg.position.y+lowerLegLength/2+upperLegLength / 2, 0);
     const positionUpperRightLeg = new Vec3(shouldersDistance/2,lowerRightLeg.position.y+lowerLegLength/2+upperLegLength / 2, 0);
@@ -321,6 +328,7 @@ export default class SceneManager {
     head.addShape(headShape);
     this.physicsHandler.addBody(head);
     this.addVisual(head, positionHead);
+    this.physicsHandler.addConstraintToBody(-0.5,3,0, head);
 
     // Upper arms
     const positionUpperLeftArm = new Vec3(-shouldersDistance/2-upperArmLength/2, upperBody.position.y+upperBodyLength/2, 0);
