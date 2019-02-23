@@ -112,8 +112,8 @@ export default class RayInput extends EventEmitter {
     //let controllerOrientation = this.camera.quaternion;
     // let controllerOrientation = new THREE.Quaternion().fromArray(pose.orientation);
 
-      this.armModel.setHeadOrientation(this.cameraGroup.quaternion);
-      this.armModel.setHeadPosition(this.cameraGroup.position);
+      this.armModel.setHeadOrientation(this.camera.quaternion);
+      this.armModel.setHeadPosition(this.camera.position);
       this.armModel.setControllerOrientation(controllerOrientation);
       this.armModel.update();
 
