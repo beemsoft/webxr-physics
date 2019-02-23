@@ -21,11 +21,12 @@
 import OrientationArmModel from './orientation-arm-model'
 import EventEmitter from '../../../node_modules/eventemitter3'
 import RayController from './ray-controller'
-import {Camera, Mesh, PerspectiveCamera, Quaternion, Vector2, Vector3} from "three";
+import {Camera, Group, Mesh, PerspectiveCamera, Quaternion, Vector2, Vector3} from "three";
 import RayRenderer from './ray-renderer';
 
 export default class RayInput extends EventEmitter {
   private camera: Camera;
+  cameraGroup: Group;
   private gamepad: Gamepad;
   renderer: RayRenderer;
   private controller: RayController;
@@ -34,14 +35,16 @@ export default class RayInput extends EventEmitter {
   private handlers: number[];
   public rayInputEventEmitter = new EventEmitter();
 
-  constructor(camera: PerspectiveCamera, gamepad: Gamepad) {
+  constructor(camera: PerspectiveCamera, gamepad: Gamepad, cameraGroup: Group) {
     super();
 
     this.camera = camera;
+    this.cameraGroup = cameraGroup;
     this.gamepad = gamepad;
-    this.renderer = new RayRenderer(camera);
     this.controller = new RayController(gamepad);
     this.armModel = new OrientationArmModel();
+    this.renderer = new RayRenderer(this.cameraGroup, this.armModel);
+    // this.renderer = new RayRenderer(this.cameraGroup, this.armModel);
 
       this.controller.controllerEventEmitter.on('raydown', () => {
         this.onRayDown_();
@@ -62,6 +65,11 @@ export default class RayInput extends EventEmitter {
 
     // Event handlers.
     this.handlers = [];
+  }
+
+  setCameraGroup(cameraGroup) {
+    // this.cameraGroup= cameraGroup;
+    // this.renderer.setCameraGroup(cameraGroup);
   }
 
   add(object: Mesh) {
@@ -86,8 +94,8 @@ export default class RayInput extends EventEmitter {
     //   return null;
     // }
     // this.gamepad = getGamepad();
-    let lookAt = new Vector3(0, 0, -1);
-    lookAt.applyQuaternion(this.camera.quaternion);
+    // let lookAt = new Vector3(0, 0, -1);
+    // lookAt.applyQuaternion(this.camera.quaternion);
     //
     // if (!!this.gamepad) {
     //   // console.log('ray orientation: '+ this.gamepad.pose.orientation[0] + ',' + this.gamepad.pose.orientation[1] + ',' + this.gamepad.pose.orientation[2] + ',' + this.gamepad.pose.orientation[3]);
@@ -98,8 +106,14 @@ export default class RayInput extends EventEmitter {
       numberArray[3] = this.gamepad.pose.orientation[3];
       let controllerOrientation = new Quaternion().fromArray(numberArray);
 
-      this.armModel.setHeadOrientation(this.camera.quaternion);
-      this.armModel.setHeadPosition(this.camera.position);
+    // var pose = this.controller.getGamepadPose();
+
+    // Debug only: use camera as input controller.
+    //let controllerOrientation = this.camera.quaternion;
+    // let controllerOrientation = new THREE.Quaternion().fromArray(pose.orientation);
+
+      this.armModel.setHeadOrientation(this.cameraGroup.quaternion);
+      this.armModel.setHeadPosition(this.cameraGroup.position);
       this.armModel.setControllerOrientation(controllerOrientation);
       this.armModel.update();
 
@@ -167,4 +181,7 @@ export default class RayInput extends EventEmitter {
   // onPointerMove_(ndc) {
   //   this.pointerNdc.copy(ndc);
   // }
+  setArmModelHeadPosition(pos) {
+    this.armModel.setHeadPosition(pos);
+  }
 }

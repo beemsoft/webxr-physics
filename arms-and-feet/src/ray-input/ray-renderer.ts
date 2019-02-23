@@ -31,6 +31,7 @@ import {
   SphereGeometry,
   Vector3
 } from "three";
+import OrientationArmModel from "./orientation-arm-model";
 
 const RETICLE_DISTANCE = 3;
 const INNER_RADIUS = 0.02;
@@ -38,10 +39,11 @@ const OUTER_RADIUS = 0.04;
 const RAY_RADIUS = 0.02;
 
 export default class RayRenderer {
-  private camera: PerspectiveCamera;
+  private armModel: OrientationArmModel;
+  private cameraGroup: Group;
   private raycaster: Raycaster;
-  private selected = new Array<boolean>();
-  private meshes = new Array<Mesh>();
+  private selected = [];
+  private meshes = [];
   private position: Vector3;
   private orientation: Quaternion;
   private root: Object3D;
@@ -51,8 +53,15 @@ export default class RayRenderer {
   private isActive: boolean;
   private isDragging: boolean;
 
-  constructor(camera) {
-    this.camera = camera;
+  constructor(cameraGroup: Group, armModel: OrientationArmModel) {
+    this.cameraGroup = cameraGroup;
+    this.armModel = armModel;
+    // TODO armModel position en direction meegeven aan ray caster
+    // this.raycaster = new Raycaster(this.cameraGroup.position, new Vector3(0, 0, -1).applyQuaternion(this.armModel.getPose().orientation));
+    // this.raycaster = new Raycaster(new Vector3(0, 2, 0), new Vector3(0, 0, -1).applyQuaternion(this.armModel.getPose().orientation));
+    // this.raycaster = new Raycaster(this.armModel.getPose().position.sub(new Vector3(0,-2,0)), new Vector3(0, 0, -1).applyQuaternion(this.armModel.getPose().orientation));
+    // this.raycaster = new Raycaster(new Vector3(0.5,2,0), new Vector3(0, 0, -1).applyQuaternion(this.armModel.getPose().orientation));
+    // this.raycaster = new Raycaster(new Vector3(2,2,0), new Vector3(0, 0, -1).applyQuaternion(this.armModel.getPose().orientation));
     this.raycaster = new Raycaster();
     this.position = new Vector3();
     this.orientation = new Quaternion();
@@ -79,6 +88,15 @@ export default class RayRenderer {
   }
 
   update() {
+    // this.raycaster = new Raycaster();
+    // this.raycaster.ray.origin.copy(this.cameraGroup.position);
+    // this.raycaster.ray.origin.copy(this.armModel.getPose().position);
+    // this.raycaster.ray.origin.copy(new Vector3(-2, 2, 0));
+    // this.raycaster = new Raycaster(this.cameraGroup.position, new Vector3(0, 0, -1).applyQuaternion(this.armModel.getPose().orientation));
+    // this.raycaster = new Raycaster(new Vector3(-2, 2, 0), new Vector3(0, 0, -1).applyQuaternion(this.armModel.getPose().orientation));
+    // this.raycaster = new Raycaster(new Vector3(0, 2, 0), new Vector3(0, 0, -1).applyQuaternion(this.armModel.getPose().orientation));
+    // this.raycaster.set(new Vector3().sub(this.cameraGroup.position), new Vector3(0, 0, -1).applyQuaternion(this.armModel.getPose().orientation));
+    // this.raycaster.set(this.armModel.getPose().position.sub(new Vector3(0,-2,0)), new Vector3(0, 0, -1).applyQuaternion(this.armModel.getPose().orientation));
     for (let id in this.meshes) {
       let mesh = this.meshes[id];
       let intersects = this.raycaster.intersectObject(mesh, true);
@@ -110,6 +128,8 @@ export default class RayRenderer {
   }
 
   setPosition(vector) {
+    // vector.x += 2;
+    // vector.y += 2;
     this.position.copy(vector);
     this.raycaster.ray.origin.copy(vector);
     this.updateRaycaster_();
@@ -128,17 +148,6 @@ export default class RayRenderer {
 
   getDirection() {
     return this.raycaster.ray.direction;
-  }
-
-  /**
-   * Sets the pointer on the screen for camera + pointer based picking. This
-   * superscedes origin and direction.
-   *
-   * @param {Vector2} vector The position of the pointer (screen coords).
-   */
-  setPointer(vector) {
-    this.raycaster.setFromCamera(vector, this.camera);
-    this.updateRaycaster_();
   }
 
   /**
@@ -266,14 +275,13 @@ export default class RayRenderer {
   }
 
   createRay_() {
-      const geometry = new CylinderGeometry(RAY_RADIUS, RAY_RADIUS, 1, 32);
-      const material = new MeshBasicMaterial({
-          precision: "mediump",
-          // map: new TextureLoader(GRADIENT_IMAGE),
-        color: 0xffffff,
-          transparent: true,
-          opacity: 0.3
-      });
-      return new Mesh(geometry, material);
+    const geometry = new CylinderGeometry(RAY_RADIUS, RAY_RADIUS, 1, 32);
+    const material = new MeshBasicMaterial({
+      precision: "mediump",
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.3
+    });
+    return new Mesh(geometry, material);
   }
 }

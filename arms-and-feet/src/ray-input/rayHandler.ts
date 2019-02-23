@@ -8,7 +8,7 @@ export default class RayHandler {
   private physicsHandler: PhysicsHandler;
   private clickMarker: Mesh;
 
-  constructor(scene, rayInput, physicsHandler) {
+  constructor(scene, rayInput: RayInput, physicsHandler) {
     this.scene = scene;
     this.rayInput = rayInput;
     this.physicsHandler = physicsHandler;
@@ -17,6 +17,7 @@ export default class RayHandler {
   handleRayDown_(opt_mesh) {
     let pos = this.rayInput.renderer.reticle.position;
     if (pos) {
+      // pos.y += 2;
       this.physicsHandler.constraintDown = true;
       this.setClickMarker(pos.x, pos.y, pos.z);
       this.physicsHandler.addPointerConstraintToMesh(pos, opt_mesh);
@@ -27,6 +28,7 @@ export default class RayHandler {
     if (this.physicsHandler.pointerConstraint) {
       let pos = this.rayInput.renderer.reticle.position;
       if (pos) {
+        // pos.y += 2;
         this.setClickMarker(pos.x, pos.y, pos.z);
         this.physicsHandler.moveJointToPoint(pos.x, pos.y, pos.z);
       }
