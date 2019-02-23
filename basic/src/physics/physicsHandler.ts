@@ -42,8 +42,8 @@ export default class PhysicsHandler {
 
   constructor() {
     this.dt = 1 / 610;
-    this.meshes = new Array<Mesh>();
-    this.bodies = new Array<Body>();
+    this.meshes = [];
+    this.bodies = [];
     this.addWorld();
     this.addJointBody();
     this.pointerConstraint = null;
