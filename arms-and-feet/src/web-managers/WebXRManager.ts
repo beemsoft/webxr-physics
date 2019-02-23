@@ -89,7 +89,7 @@ export default class WebXRManager {
     this.gamepad = this.getVRGamepad();
     if (this.gamepad) {
       let cameraGroup = new Group();
-      cameraGroup.position.set(0, 0, 0);
+      cameraGroup.position.set(-1, 5, 2);
       cameraGroup.add(this.camera);
       this.camera.position.y += 2;
       this.scene.add(cameraGroup);

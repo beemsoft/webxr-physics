@@ -56,12 +56,6 @@ export default class RayRenderer {
   constructor(cameraGroup: Group, armModel: OrientationArmModel) {
     this.cameraGroup = cameraGroup;
     this.armModel = armModel;
-    // TODO armModel position en direction meegeven aan ray caster
-    // this.raycaster = new Raycaster(this.cameraGroup.position, new Vector3(0, 0, -1).applyQuaternion(this.armModel.getPose().orientation));
-    // this.raycaster = new Raycaster(new Vector3(0, 2, 0), new Vector3(0, 0, -1).applyQuaternion(this.armModel.getPose().orientation));
-    // this.raycaster = new Raycaster(this.armModel.getPose().position.sub(new Vector3(0,-2,0)), new Vector3(0, 0, -1).applyQuaternion(this.armModel.getPose().orientation));
-    // this.raycaster = new Raycaster(new Vector3(0.5,2,0), new Vector3(0, 0, -1).applyQuaternion(this.armModel.getPose().orientation));
-    // this.raycaster = new Raycaster(new Vector3(2,2,0), new Vector3(0, 0, -1).applyQuaternion(this.armModel.getPose().orientation));
     this.raycaster = new Raycaster();
     this.position = new Vector3();
     this.orientation = new Quaternion();
@@ -88,15 +82,10 @@ export default class RayRenderer {
   }
 
   update() {
-    // this.raycaster = new Raycaster();
-    // this.raycaster.ray.origin.copy(this.cameraGroup.position);
-    // this.raycaster.ray.origin.copy(this.armModel.getPose().position);
-    // this.raycaster.ray.origin.copy(new Vector3(-2, 2, 0));
-    // this.raycaster = new Raycaster(this.cameraGroup.position, new Vector3(0, 0, -1).applyQuaternion(this.armModel.getPose().orientation));
-    // this.raycaster = new Raycaster(new Vector3(-2, 2, 0), new Vector3(0, 0, -1).applyQuaternion(this.armModel.getPose().orientation));
-    // this.raycaster = new Raycaster(new Vector3(0, 2, 0), new Vector3(0, 0, -1).applyQuaternion(this.armModel.getPose().orientation));
-    // this.raycaster.set(new Vector3().sub(this.cameraGroup.position), new Vector3(0, 0, -1).applyQuaternion(this.armModel.getPose().orientation));
-    // this.raycaster.set(this.armModel.getPose().position.sub(new Vector3(0,-2,0)), new Vector3(0, 0, -1).applyQuaternion(this.armModel.getPose().orientation));
+    let pos = this.armModel.getPose().position;
+    let posGroup = this.cameraGroup.position;
+    let pos2 = new Vector3(pos.x + posGroup.x, pos.y + posGroup.y, pos.z + posGroup.z);
+    this.raycaster.set(pos2, this.raycaster.ray.direction);
     for (let id in this.meshes) {
       let mesh = this.meshes[id];
       let intersects = this.raycaster.intersectObject(mesh, true);
@@ -220,7 +209,7 @@ export default class RayRenderer {
       const position = this.reticle.position;
       position.copy(ray.direction);
     position.multiplyScalar(this.reticleDistance);
-    position.add(ray.origin);
+      position.add(ray.origin);
 
     // Set position and orientation of the ray so that it goes from origin to
     // reticle.
@@ -271,7 +260,7 @@ export default class RayRenderer {
     }
 
     this.reticleDistance = distance;
-    this.updateRaycaster_();
+    // this.updateRaycaster_();
   }
 
   createRay_() {
