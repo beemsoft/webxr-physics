@@ -30,7 +30,7 @@ export default class WebPageManager {
     this.addOutputToPage();
     window.addEventListener( 'resize', this.onWindowResize, false );
     this.physicsHandler = new PhysicsHandler();
-    this.sceneBuilder = new SceneManager(this.scene, this.camera, this.physicsHandler);
+    this.sceneBuilder = new SceneManager(this.scene, this.physicsHandler);
     render();
   }
 

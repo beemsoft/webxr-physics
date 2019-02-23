@@ -50,10 +50,10 @@ export default class WebXRManager {
   private sceneBuilder: SceneManager;
   private rayHandler: RayHandler;
 
-  constructor(display: VRDisplay, renderer: WebGLRenderer, camera: PerspectiveCamera, scene: Scene) {
+  constructor(display: VRDisplay, renderer: WebGLRenderer, scene: Scene) {
     this.display = display;
     this.renderer = renderer;
-    this.camera = camera;
+    this.camera = new PerspectiveCamera();
     this.scene = scene;
     this.renderer.vr.setDevice(display);
     new WebXRPolyfill();
@@ -88,8 +88,13 @@ export default class WebXRManager {
   initController() {
     this.gamepad = this.getVRGamepad();
     if (this.gamepad) {
-      this.rayInput = new RayInput(this.camera, this.gamepad);
-      this.addCameraAndControllerToScene();
+      let cameraGroup = new Group();
+      cameraGroup.position.set(0, 0, 0);
+      cameraGroup.add(this.camera);
+      this.camera.position.y += 2;
+      this.scene.add(cameraGroup);
+      this.rayInput = new RayInput(this.camera, this.gamepad, cameraGroup);
+      cameraGroup.add(this.rayInput.getMesh());
       this.physicsHandler = new PhysicsWithRayInputHandler(this.rayInput);
       this.rayHandler = new RayHandler(this.scene, this.rayInput, this.physicsHandler);
       this.rayInput.rayInputEventEmitter.on('raydown', (opt_mesh) => {
@@ -101,16 +106,8 @@ export default class WebXRManager {
       this.rayInput.rayInputEventEmitter.on('raydrag', () => {
         this.rayHandler.handleRayDrag_()
       });
-      this.sceneBuilder = new SceneWithAudioManager(this.scene, this.camera, this.physicsHandler);
+      this.sceneBuilder = new SceneWithAudioManager(this.scene, this.physicsHandler, cameraGroup);
     }
-  }
-
-  private addCameraAndControllerToScene() {
-    let cameraGroup = new Group();
-    cameraGroup.position.set(0, 0, 0);
-    cameraGroup.add(this.camera);
-    cameraGroup.add(this.rayInput.getMesh());
-    this.scene.add(cameraGroup);
   }
 
   onXRFrame = () => {
@@ -131,8 +128,6 @@ export default class WebXRManager {
     this.sessionActive = true;
     console.log('Renderer - enable VR');
     this.renderer.setClearColor( 0xCCCCCC );
-    this.camera.aspect = window.innerWidth / window.innerHeight;
-    this.camera.updateProjectionMatrix();
     console.log('Request present VR display');
     this.display.requestPresent([{source: this.renderer.domElement}])
     .then(() => {

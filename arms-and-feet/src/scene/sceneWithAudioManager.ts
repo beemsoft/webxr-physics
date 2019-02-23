@@ -1,16 +1,18 @@
 import SceneManager from './sceneManager';
 import AudioHandler from '../audio/audioHandler';
-import {PerspectiveCamera, Scene} from 'three';
+import {Group, Scene} from 'three';
 import PhysicsHandler from '../physics/physicsHandler';
 
 export default class SceneWithAudioManager extends SceneManager {
   private audioHandler: AudioHandler;
+  private cameraGroup: Group;
 
-  constructor(scene: Scene, camera: PerspectiveCamera, physicsHandler: PhysicsHandler) {
-    super(scene, camera, physicsHandler);
+  constructor(scene: Scene, physicsHandler: PhysicsHandler, cameraGroup: Group) {
+    super(scene, physicsHandler);
     this.audioHandler = new AudioHandler();
     this.audioHandler.initAudio();
     this.audioHandler.audioElement.play();
+    this.cameraGroup = cameraGroup;
   }
 
   sayWelcome = () => {
@@ -23,8 +25,8 @@ export default class SceneWithAudioManager extends SceneManager {
   update() {
     super.update();
     if (this.cube) {
-      this.audioHandler.setPosition(this.cube.position);
-      this.audioHandler.setVolume(this.cube.position);
+      this.audioHandler.setPosition(this.cube.position.sub(this.cameraGroup.position));
+      this.audioHandler.setVolume(this.cube.position.sub(this.cameraGroup.position));
     }
   }
 

@@ -1,4 +1,4 @@
-import {PerspectiveCamera, Scene, WebGLRenderer} from 'three';
+import {Scene, WebGLRenderer} from 'three';
 import WebXRManager from './web-managers/WebXRManager';
 import WebPageManager from './web-managers/WebPageManager';
 
@@ -6,7 +6,6 @@ let element: HTMLElement;
 let renderer: WebGLRenderer;
 let webManager: WebXRManager;
 let scene: Scene;
-let camera: PerspectiveCamera;
 let display: VRDisplay;
 const dummyDisplay = 'Emulated HTC Vive DVT';
 
@@ -37,7 +36,7 @@ function addVrButton() {
   button.textContent = 'ENTER VR';
 
   button.addEventListener('click', () => {
-    webManager = new WebXRManager(display, renderer, camera, scene);
+    webManager = new WebXRManager(display, renderer, scene);
   });
 
   element.appendChild(button);
@@ -47,9 +46,6 @@ function addVrButton() {
 
 function initRenderer() {
   scene = new Scene();
-  camera = new PerspectiveCamera();
-  scene.add(camera);
-  camera.position.set(0, 1, 0);
   renderer = new WebGLRenderer({alpha: true});
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.autoClear = false;
