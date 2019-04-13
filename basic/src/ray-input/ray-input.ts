@@ -24,7 +24,7 @@ import RayController from './ray-controller'
 import {Camera, PerspectiveCamera, Quaternion, Vector2, Vector3} from "three";
 import RayRenderer from './ray-renderer';
 
-export default class RayInput extends EventEmitter {
+export default class RayInput {
   private camera: Camera;
   private gamepad: Gamepad;
   renderer: RayRenderer;
@@ -35,8 +35,6 @@ export default class RayInput extends EventEmitter {
   public rayInputEventEmitter = new EventEmitter();
 
   constructor(camera: PerspectiveCamera, gamepad: Gamepad) {
-    super();
-
     this.camera = camera;
     this.gamepad = gamepad;
     this.renderer = new RayRenderer(camera);
