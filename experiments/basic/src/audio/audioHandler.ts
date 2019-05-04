@@ -1,6 +1,6 @@
 import {ResonanceAudio, Source} from "resonance-audio";
 // @ts-ignore
-import cubeSound from '../../resources/cube-sound.wav';
+import cubeSound from '../../../../js/resources/cube-sound.wav';
 
 export default class AudioHandler {
   

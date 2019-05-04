@@ -1,17 +1,16 @@
 import {PerspectiveCamera, Scene, WebGLRenderer} from 'three';
 import TrackballControls from 'three-trackballcontrols';
+import {SceneManagerInterface} from '../scene/SceneManagerInterface';
 import PhysicsHandler from '../physics/physicsHandler';
-import SceneManager from '../../../basic/src/scene/sceneManager';
 
 export default class WebPageManager {
   private readonly camera: PerspectiveCamera;
   private renderer: WebGLRenderer;
   private readonly scene: Scene;
-  private readonly physicsHandler: PhysicsHandler;
-  private sceneBuilder: SceneManager;
+  private sceneBuilder: SceneManagerInterface;
   private controls: TrackballControls;
 
-  constructor() {
+  constructor(sceneManager: SceneManagerInterface) {
     let $this = this;
     function render() {
       $this.renderer.setAnimationLoop(render);
@@ -19,6 +18,7 @@ export default class WebPageManager {
       $this.controls.update();
       $this.renderer.render($this.scene, $this.camera);
     }
+    this.sceneBuilder = sceneManager;
     this.scene = new Scene();
     this.camera = new PerspectiveCamera();
     this.scene.add(this.camera);
@@ -26,10 +26,10 @@ export default class WebPageManager {
     this.renderer = new WebGLRenderer({alpha: false});
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.autoClear = false;
+    this.sceneBuilder.build(this.scene, this.renderer.capabilities.getMaxAnisotropy(), new PhysicsHandler());
     this.addTrackBallControls();
     this.addOutputToPage();
     window.addEventListener( 'resize', this.onWindowResize, false );
-    this.sceneBuilder = new SceneManager(this.scene, this.camera);
     render();
   }
 

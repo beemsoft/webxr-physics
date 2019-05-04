@@ -20,7 +20,12 @@ module.exports = {
             {
                 test: /\.(png|svg|jpg|gif|wav)$/,
                 use: [
-                    'file-loader'
+                    {
+                        loader: 'file-loader',
+                        options: {
+                            name: '[name].[ext]',
+                        }
+                    }
                 ]
             }
         ]

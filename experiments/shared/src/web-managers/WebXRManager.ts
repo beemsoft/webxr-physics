@@ -101,6 +101,7 @@ export default class WebXRManager {
       this.rayInput.rayInputEventEmitter.on('raydrag', () => {
         this.rayHandler.handleRayDrag_()
       });
+      this.sceneBuilder.build(this.scene, this.renderer.capabilities.getMaxAnisotropy(), this.physicsHandler);
     }
   }
 

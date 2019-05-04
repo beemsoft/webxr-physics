@@ -12,7 +12,7 @@ let display: VRDisplay;
 const dummyDisplay = 'Emulated HTC Vive DVT';
 
 export class VrInitializer {
-  private sceneBuilder: SceneManagerInterface;
+  private readonly sceneBuilder: SceneManagerInterface;
 
   constructor(sceneManager: SceneManagerInterface) {
     this.sceneBuilder = sceneManager;
@@ -72,7 +72,7 @@ export class VrInitializer {
           this.initRenderer();
           this.addVrButton();
         } else {
-          new WebPageManager();
+          new WebPageManager(this.sceneBuilder);
         }
       });
     element = document.createElement('div');

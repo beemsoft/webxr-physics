@@ -131,17 +131,6 @@ export default class RayRenderer {
   }
 
   /**
-   * Sets the pointer on the screen for camera + pointer based picking. This
-   * superscedes origin and direction.
-   *
-   * @param {Vector2} vector The position of the pointer (screen coords).
-   */
-  setPointer(vector) {
-    this.raycaster.setFromCamera(vector, this.camera);
-    this.updateRaycaster_();
-  }
-
-  /**
    * Gets the mesh, which includes reticle and/or ray. This mesh is then added
    * to the scene.
    */
@@ -162,9 +151,6 @@ export default class RayRenderer {
     return mesh;
   }
 
-  /**
-   * Hides and shows the reticle.
-   */
   setReticleVisibility(isVisible) {
     this.reticle.visible = isVisible;
   }

@@ -27,14 +27,15 @@
  */
 
 import {Body, NaiveBroadphase, PointToPointConstraint, Quaternion, Sphere, Vec3, World} from "cannon";
-import {Mesh, Vector3} from "three";
+import {Mesh, Object3D, Vector3} from "three";
+import {BodyConverter} from '../util/BodyConverter';
 
 export default class PhysicsHandler {
-  private readonly dt: number;
-  private readonly meshes: Mesh[];
-  private readonly bodies: Body[];
+  dt: number;
+  protected readonly meshes: Object3D[];
+  protected readonly bodies: Body[];
   private jointBody: Body;
-  private world: World;
+  world: World;
   pointerConstraint: PointToPointConstraint;
   constraintDown: boolean;
   private constrainedBody: Body;
@@ -75,10 +76,10 @@ export default class PhysicsHandler {
         this.meshes[i].position.x = this.bodies[i].position.x;
         this.meshes[i].position.y = this.bodies[i].position.y;
         this.meshes[i].position.z = this.bodies[i].position.z;
-        this.bodies[i].quaternion.x = this.meshes[i].quaternion.x;
-        this.bodies[i].quaternion.y = this.meshes[i].quaternion.y;
-        this.bodies[i].quaternion.z = this.meshes[i].quaternion.z;
-        this.bodies[i].quaternion.w = this.meshes[i].quaternion.w;
+        this.meshes[i].quaternion.x = this.bodies[i].quaternion.x;
+        this.meshes[i].quaternion.y = this.bodies[i].quaternion.y;
+        this.meshes[i].quaternion.z = this.bodies[i].quaternion.z;
+        this.meshes[i].quaternion.w = this.bodies[i].quaternion.w;
       }
     }
   }
@@ -90,6 +91,18 @@ export default class PhysicsHandler {
   addBody(body: Body) {
     this.bodies.push(body);
     this.world.addBody(body);
+  }
+
+  addVisual(body, material): Object3D {
+    let mesh: Object3D;
+    if(body instanceof Body){
+      mesh = BodyConverter.shape2mesh(body, material);
+    }
+    if(mesh) {
+      this.bodies.push(body);
+      this.meshes.push(mesh);
+    }
+    return mesh;
   }
 
   addPointerConstraintToMesh(pos: Vector3, mesh: Mesh) {
