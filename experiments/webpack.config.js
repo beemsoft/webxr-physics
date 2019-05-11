@@ -4,7 +4,8 @@ module.exports = {
     mode: 'development',
     entry: {
         basic: './basic/src/',
-        backspin: './backspin/src/'
+        backspin: './backspin/src/',
+        armmodeltest: './armmodeltest/src/'
     },
     devtool: 'inline-source-map',
     devServer: {

@@ -72,52 +72,32 @@ export default class RayInput {
   }
 
   update() {
-    // function getGamepad() {
-    //   let gamepads = navigator.getGamepads && navigator.getGamepads();
-    //   for (let i = 0; i < gamepads.length; i++) {
-    //     let gamepad = gamepads[i];
-    //     if (gamepad && gamepad.pose) {
-    //       return gamepad;
-    //     }
-    //   }
-    //   console.log('no gamepad found');
-    //   return null;
-    // }
-    // this.gamepad = getGamepad();
     let lookAt = new Vector3(0, 0, -1);
     lookAt.applyQuaternion(this.camera.quaternion);
-    //
-    // if (!!this.gamepad) {
-    //   // console.log('ray orientation: '+ this.gamepad.pose.orientation[0] + ',' + this.gamepad.pose.orientation[1] + ',' + this.gamepad.pose.orientation[2] + ',' + this.gamepad.pose.orientation[3]);
-      let numberArray = [];
-      numberArray[0] = this.gamepad.pose.orientation[0];
-      numberArray[1] = this.gamepad.pose.orientation[1];
-      numberArray[2] = this.gamepad.pose.orientation[2];
-      numberArray[3] = this.gamepad.pose.orientation[3];
-      let controllerOrientation = new Quaternion().fromArray(numberArray);
+    let numberArray = [];
+    numberArray[0] = this.gamepad.pose.orientation[0];
+    numberArray[1] = this.gamepad.pose.orientation[1];
+    numberArray[2] = this.gamepad.pose.orientation[2];
+    numberArray[3] = this.gamepad.pose.orientation[3];
+    let controllerOrientation = new Quaternion().fromArray(numberArray);
 
-      this.armModel.setHeadOrientation(this.camera.quaternion);
-      this.armModel.setHeadPosition(this.camera.position);
-      this.armModel.setControllerOrientation(controllerOrientation);
-      this.armModel.update();
+    this.armModel.setHeadOrientation(this.camera.quaternion);
+    this.armModel.setHeadPosition(this.camera.position);
+    this.armModel.setControllerOrientation(controllerOrientation);
+    this.armModel.update();
 
-      let modelPose = this.armModel.getPose();
-      this.renderer.setPosition(modelPose.position);
-      this.renderer.setOrientation(modelPose.orientation);
+    let modelPose = this.armModel.getPose();
+    this.renderer.setPosition(modelPose.position);
+    this.renderer.setOrientation(modelPose.orientation);
 
-      this.renderer.setRayVisibility(true);
-      this.renderer.setReticleVisibility(true);
+    this.renderer.setRayVisibility(true);
+    this.renderer.setReticleVisibility(true);
 
-      this.renderer.setActive(true);
+    this.renderer.setActive(true);
 
-      this.renderer.update();
-      this.controller.update();
-    // }
+    this.renderer.update();
+    this.controller.update();
   }
-
-  // setSize(size) {
-  //   this.controller.setSize(size);
-  // }
 
   getMesh() {
     return this.renderer.getReticleRayMesh();

@@ -33,8 +33,6 @@ const MIN_ANGULAR_SPEED = 0.61; // 35 degrees per second (in radians).
 /**
  * Represents the arm model for the Daydream controller. Feed it a camera and
  * the controller. Update it on a RAF.
- *
- * Get the model's pose using getPose().
  */
 export default class OrientationArmModel {
   private isLeftHanded: boolean;
@@ -46,7 +44,7 @@ export default class OrientationArmModel {
   private wristPos: Vector3;
   private time: number;
   private lastTime: number;
-  private rootQ: Quaternion;
+  rootQ: Quaternion;
   private pose: { orientation: Quaternion; position: Vector3 };
 
   constructor() {
@@ -94,11 +92,6 @@ export default class OrientationArmModel {
 
   setHeadPosition(position) {
     this.headPos.copy(position);
-  }
-
-  setLeftHanded(isLeftHanded) {
-    // TODO(smus): Implement me!
-    this.isLeftHanded = isLeftHanded;
   }
 
   update() {
@@ -185,9 +178,6 @@ export default class OrientationArmModel {
     this.lastTime = this.time;
   }
 
-  /**
-   * Returns the pose calculated by the model.
-   */
   getPose() {
     return this.pose;
   }
@@ -213,8 +203,7 @@ export default class OrientationArmModel {
     let headEuler = new Euler().setFromQuaternion(this.headQ, 'YXZ');
     headEuler.x = 0;
     headEuler.z = 0;
-    let destinationQ = new Quaternion().setFromEuler(headEuler);
-    return destinationQ;
+    return new Quaternion().setFromEuler(headEuler);
   }
 
   clamp_(value, min, max) {
