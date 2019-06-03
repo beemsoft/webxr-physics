@@ -21,10 +21,13 @@
 import OrientationArmModel from './orientation-arm-model'
 import {EventEmitter} from 'eventemitter3'
 import RayController from './ray-controller'
-import {Camera, PerspectiveCamera, Quaternion, Vector2, Vector3} from "three";
+import {Camera, Group, Object3D, PerspectiveCamera, Quaternion, Scene, Vector2, Vector3} from "three";
 import RayRenderer from './ray-renderer';
+import {ControllerInterface} from '../web-managers/ControllerInterface';
+import PhysicsWithRayInputHandler from '../physics/physicsWithRayInputHandler';
+import RayHandler from './rayHandler';
 
-export default class RayInput {
+export default class RayInput implements ControllerInterface {
   private camera: Camera;
   private gamepad: Gamepad;
   renderer: RayRenderer;
@@ -60,6 +63,25 @@ export default class RayInput {
 
     // Event handlers.
     this.handlers = [];
+  }
+
+  addCameraAndControllerToScene(scene: Scene) {
+    let cameraGroup = new Group();
+    cameraGroup.position.set(0, 0, 0);
+    cameraGroup.add(this.camera);
+    cameraGroup.add(this.getMesh());
+    scene.add(cameraGroup);
+    let physicsHandler = new PhysicsWithRayInputHandler(this);
+    let rayHandler = new RayHandler(scene, this, physicsHandler);
+    this.rayInputEventEmitter.on('raydown', (opt_mesh) => {
+      rayHandler.handleRayDown_(opt_mesh);
+    });
+    this.rayInputEventEmitter.on('rayup', () => {
+      rayHandler.handleRayUp_();
+    });
+    this.rayInputEventEmitter.on('raydrag', () => {
+      rayHandler.handleRayDrag_()
+    });
   }
 
   add(object: Object) {
@@ -99,7 +121,7 @@ export default class RayInput {
     this.controller.update();
   }
 
-  getMesh() {
+  getMesh(): Object3D {
     return this.renderer.getReticleRayMesh();
   }
 

@@ -27,13 +27,13 @@
  SOFTWARE.
  */
 
-import {Group, PerspectiveCamera, Scene, WebGLRenderer} from 'three';
+import {PerspectiveCamera, Scene, WebGLRenderer} from 'three';
 import WebXRPolyfill from 'webxr-polyfill';
 import PhysicsHandler from '../physics/physicsHandler';
-import RayHandler from '../ray-input/rayHandler';
 import RayInput from '../ray-input/ray-input';
-import PhysicsWithRayInputHandler from '../physics/physicsWithRayInputHandler';
 import {SceneManagerInterface} from '../scene/SceneManagerInterface';
+import {ControllerInterface} from './ControllerInterface';
+import HandController from '../controller-hands/hand-controller';
 
 export default class WebXRManager {
   private readonly camera: PerspectiveCamera;
@@ -43,11 +43,13 @@ export default class WebXRManager {
 
   sessionActive = false;
   private session = null;
-  private gamepad: Gamepad;
-  private rayInput: RayInput;
+  private gamepads: Gamepad[];
+  private gamepadsActive = false;
+  private rayInput: ControllerInterface;
+  private handController1: ControllerInterface;
+  private handController2: ControllerInterface;
   private physicsHandler: PhysicsHandler;
   private sceneBuilder: SceneManagerInterface;
-  private rayHandler: RayHandler;
 
   constructor(display: VRDisplay, renderer: WebGLRenderer, camera: PerspectiveCamera, scene: Scene, sceneBuilder: SceneManagerInterface) {
     this.display = display;
@@ -78,48 +80,47 @@ export default class WebXRManager {
       let gamepad = gamepads[i];
       if (gamepad && gamepad.pose) {
         console.log('gamepad: ' + gamepad.id);
-        return gamepad;
+        this.gamepadsActive = true;
       }
     }
-    console.log('no gamepad found');
-    return null;
+    if (this.gamepadsActive) {
+      this.gamepads = gamepads;
+    } else {
+      console.log('no gamepad found');
+    }
   };
 
-  initController() {
-    this.gamepad = this.getVRGamepad();
-    if (this.gamepad) {
-      this.rayInput = new RayInput(this.camera, this.gamepad);
-      this.addCameraAndControllerToScene();
-      this.physicsHandler = new PhysicsWithRayInputHandler(this.rayInput);
-      this.rayHandler = new RayHandler(this.scene, this.rayInput, this.physicsHandler);
-      this.rayInput.rayInputEventEmitter.on('raydown', (opt_mesh) => {
-        this.rayHandler.handleRayDown_(opt_mesh);
-      });
-      this.rayInput.rayInputEventEmitter.on('rayup', () => {
-        this.rayHandler.handleRayUp_();
-      });
-      this.rayInput.rayInputEventEmitter.on('raydrag', () => {
-        this.rayHandler.handleRayDrag_()
-      });
-      this.sceneBuilder.build(this.scene, this.renderer.capabilities.getMaxAnisotropy(), this.physicsHandler);
+  initControllersAndBuildScene() {
+    this.getVRGamepad();
+    if (this.gamepadsActive) {
+      if (this.gamepads.length === 1) {
+        this.rayInput = new RayInput(this.camera, this.gamepads[0]);
+        this.rayInput.addCameraAndControllerToScene(this.scene);
+      } else {
+        this.physicsHandler = new PhysicsHandler();
+        this.handController1 = new HandController(this.gamepads[0], this.physicsHandler);
+        this.handController1.addCameraAndControllerToScene(this.scene).then(() => {
+          this.handController2 = new HandController(this.gamepads[1], this.physicsHandler);
+          this.handController2.addCameraAndControllerToScene(this.scene).then(() => {
+            this.sceneBuilder.build(this.scene, this.renderer.capabilities.getMaxAnisotropy(), this.physicsHandler);
+            })
+        });
+      }
     }
-  }
-
-  private addCameraAndControllerToScene() {
-    let cameraGroup = new Group();
-    cameraGroup.position.set(0, 0, 0);
-    cameraGroup.add(this.camera);
-    cameraGroup.add(this.rayInput.getMesh());
-    this.scene.add(cameraGroup);
   }
 
   onXRFrame = () => {
-    if (this.gamepad != null) {
-      this.rayInput.update();
+    if (this.gamepadsActive) {
+      if (this.gamepads.length === 1) {
+        this.rayInput.update();
+      } else {
+        this.handController1.update();
+        this.handController2.update();
+      }
       this.sceneBuilder.update();
       this.physicsHandler.updatePhysics();
     } else {
-      this.initController();
+      this.initControllersAndBuildScene();
     }
     this.renderer.render(this.scene, this.camera);
     this.session.requestAnimationFrame(this.onXRFrame);
@@ -146,4 +147,3 @@ export default class WebXRManager {
     this.renderer.vr.enabled = false;
   };
 }
-

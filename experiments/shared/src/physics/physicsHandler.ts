@@ -26,7 +26,17 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import {Body, NaiveBroadphase, PointToPointConstraint, Quaternion, Sphere, Vec3, World} from "cannon";
+import {
+  Body,
+  ContactMaterial,
+  Material,
+  NaiveBroadphase,
+  PointToPointConstraint,
+  Quaternion,
+  Sphere,
+  Vec3,
+  World
+} from "cannon";
 import {Mesh, Object3D, Vector3} from "three";
 import {BodyConverter} from '../util/BodyConverter';
 
@@ -39,15 +49,21 @@ export default class PhysicsHandler {
   pointerConstraint: PointToPointConstraint;
   constraintDown: boolean;
   private constrainedBody: Body;
+  handMaterial = new Material("hand");
 
   constructor() {
-    this.dt = 1 / 610;
+    this.dt = 1 / 300;
     this.meshes = [];
     this.bodies = [];
     this.addWorld();
     this.addJointBody();
     this.pointerConstraint = null;
     this.constraintDown = false
+  }
+
+  addBallHandContactMaterial(ballMaterial: Material, friction, restitution) {
+    let contactMaterial = new ContactMaterial(ballMaterial, this.handMaterial, { friction: friction, restitution: restitution });
+    this.world.addContactMaterial(contactMaterial);
   }
 
   private addWorld() {
@@ -99,7 +115,7 @@ export default class PhysicsHandler {
       mesh = BodyConverter.shape2mesh(body, material);
     }
     if(mesh) {
-      this.bodies.push(body);
+      // this.bodies.push(body);
       this.meshes.push(mesh);
     }
     return mesh;
