@@ -52,7 +52,7 @@ export default class PhysicsHandler {
   handMaterial = new Material("hand");
 
   constructor() {
-    this.dt = 1 / 300;
+    this.dt = 1 / 60;
     this.meshes = [];
     this.bodies = [];
     this.addWorld();
@@ -63,6 +63,11 @@ export default class PhysicsHandler {
 
   addBallHandContactMaterial(ballMaterial: Material, friction, restitution) {
     let contactMaterial = new ContactMaterial(ballMaterial, this.handMaterial, { friction: friction, restitution: restitution });
+    this.world.addContactMaterial(contactMaterial);
+  }
+
+  addCubeHandContactMaterial(material: Material, friction, restitution) {
+    let contactMaterial = new ContactMaterial(material, this.handMaterial, { friction: friction, restitution: restitution });
     this.world.addContactMaterial(contactMaterial);
   }
 

@@ -1,5 +1,4 @@
 import {
-  Clock,
   DirectionalLight,
   HemisphereLight,
   Mesh,
@@ -18,54 +17,30 @@ import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
 export default class SceneManager implements SceneManagerInterface {
   private scene: Scene;
   private physicsHandler: PhysicsHandler;
-  private clock = new Clock();
-  protected cube: Mesh;
   private loader: TextureLoader;
-  private stickToCamera: boolean;
-  private fixBallPosition: boolean;
-  private handRotationStep: number;
-  private currentMaterial: MeshBasicMaterial;
   private ball: Body;
-  private APP = {
-    ballRadius: 6,
-    basketColor: 0xc84b28,
-    getBasketRadius: () => this.APP.ballRadius + 2,
-    basketTubeRadius: 0.5,
-    basketY: 20,
-    basketDistance: 80,
-    getBasketZ: () => this.APP.getBasketRadius() + this.APP.basketTubeRadius * 2 - this.APP.basketDistance
-  };
   private ballMaterial: Material;
   private hand: Body;
   private handSettings = {
-    throwAngleStep: (Math.PI/16)/1, // Math.PI/4,
-    throwAngleStart: 0.221, // Math.PI/2 + Math.PI/4,
-    throwAngleStop: -(Math.PI+Math.PI/4), // -2.423, // -Math.PI,
-    handRadius: .15, // 0.15,
-    fingerTips: 7, // 4,
-    fingerTipSize: 0.019 // 0.01
+    handRadius: .15,
   };
-  private totalRotation = -Math.PI/20; // Math.PI/2;
 
   constructor() {
     this.loader = new TextureLoader();
-    this.stickToCamera = false;
-    this.fixBallPosition = false;
-    this.handRotationStep = -0.005;
   }
 
   build(scene: Scene, maxAnisotropy: number, physicsHandler: PhysicsHandler) {
     this.scene = scene;
     this.physicsHandler = physicsHandler;
+    this.physicsHandler.dt = 1/180;
     this.physicsHandler.world.gravity.set(0, -9.8,0);
-    console.log('Building Backspin scene...');
     this.addLight();
     this.addBall();
     this.addFingerTips();
     let text = new TextMesh( maxAnisotropy, 1024, 512 );
     scene.add( text.mesh );
     text.mesh.position.set(0, 1, -2);
-    text.set('Hello world');
+    text.set('Catch the ball and throw it!');
   }
 
   addLight() {
@@ -93,7 +68,6 @@ export default class SceneManager implements SceneManagerInterface {
 
     this.physicsHandler.addMesh(ballMesh);
 
-    let size = 1;
     let damping = 0.01;
     let mass = 0.1; // 0.6237;
     let sphereShape = new Sphere(ballRadius);
@@ -119,7 +93,6 @@ export default class SceneManager implements SceneManagerInterface {
     let hand_material = new MeshBasicMaterial({
       color: 0xFF3333,
     });
-    this.currentMaterial = hand_material;
     const Ncols = 5;
     const angle = 360 / Ncols;
     let body = new Body({
@@ -139,13 +112,12 @@ export default class SceneManager implements SceneManagerInterface {
       body.addShape(new Sphere(0.05), relativePosition);
     }
 
-    let mesh = this.physicsHandler.addVisual(body, this.currentMaterial);
+    let mesh = this.physicsHandler.addVisual(body, hand_material);
     this.scene.add(mesh);
     mesh.receiveShadow = false;
     this.physicsHandler.addBody(body);
 
     this.hand = body;
-    this.hand.quaternion.setFromAxisAngle(new Vec3(1, 0, 0), this.totalRotation);
   }
 
   toRadians(angle) {
@@ -154,7 +126,7 @@ export default class SceneManager implements SceneManagerInterface {
 
   update() {
     this.physicsHandler.updatePhysics();
-    if (this.ball.position.y < -1) {
+    if (this.ball.position.y < 0) {
       this.ball.velocity = new Vec3(0,0,0);
       this.ball.angularVelocity = new Vec3(0,0,0);
       this.ball.position.set(0,5,0);
