@@ -23,7 +23,7 @@
     "rgbcolor": "^1.0.1",
     "stackblur-canvas": "^2.2.0",
     "systemjs": "0.21.5",
-    "three": "^0.100",
+    "three": "^0.105",
     "three-orbitcontrols-ts": "^0.1.2",
     "three-trackballcontrols": "0.0.7",
     "webxr-polyfill": "^1.0.13"
