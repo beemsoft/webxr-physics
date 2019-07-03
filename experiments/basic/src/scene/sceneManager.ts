@@ -1,4 +1,12 @@
-import {BoxGeometry, DirectionalLight, HemisphereLight, Mesh, MeshNormalMaterial, Scene} from 'three';
+import {
+  BoxGeometry,
+  DirectionalLight,
+  HemisphereLight,
+  Mesh,
+  MeshNormalMaterial,
+  PerspectiveCamera,
+  Scene
+} from 'three';
 import {Body, Box, Material, Vec3} from 'cannon';
 import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
 import {SceneManagerInterface} from '../../../shared/src/scene/SceneManagerInterface';
@@ -18,7 +26,7 @@ export default class SceneManager implements SceneManagerInterface {
     this.audioHandler.initAudio();
   }
 
-  build(scene: Scene, maxAnisotropy: number, physicsHandler: PhysicsHandler) {
+  build(camera: PerspectiveCamera, scene: Scene, maxAnisotropy: number, physicsHandler: PhysicsHandler) {
     this.scene = scene;
     this.physicsHandler = physicsHandler;
     console.log('Building Basic scene...');

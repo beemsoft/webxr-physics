@@ -4,6 +4,7 @@ import {
   Mesh,
   MeshBasicMaterial,
   MeshPhongMaterial,
+  PerspectiveCamera,
   Scene,
   SphereGeometry,
   TextureLoader,
@@ -29,7 +30,7 @@ export default class SceneManager implements SceneManagerInterface {
     this.loader = new TextureLoader();
   }
 
-  build(scene: Scene, maxAnisotropy: number, physicsHandler: PhysicsHandler) {
+  build(camera: PerspectiveCamera, scene: Scene, maxAnisotropy: number, physicsHandler: PhysicsHandler) {
     this.scene = scene;
     this.physicsHandler = physicsHandler;
     this.physicsHandler.dt = 1/180;

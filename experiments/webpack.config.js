@@ -5,6 +5,7 @@ module.exports = {
     entry: {
         basic: './basic/src/',
         backspin: './backspin/src/',
+        ragdoll: './ragdoll/src/',
         armmodeltest: './armmodeltest/src/'
     },
     devtool: 'inline-source-map',

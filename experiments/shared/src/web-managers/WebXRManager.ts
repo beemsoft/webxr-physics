@@ -50,13 +50,15 @@ export default class WebXRManager {
   private handController2: ControllerInterface;
   private physicsHandler: PhysicsHandler;
   private sceneBuilder: SceneManagerInterface;
+  private isControllerVisible: Boolean;
 
-  constructor(display: VRDisplay, renderer: WebGLRenderer, camera: PerspectiveCamera, scene: Scene, sceneBuilder: SceneManagerInterface) {
+  constructor(display: VRDisplay, renderer: WebGLRenderer, camera: PerspectiveCamera, scene: Scene, sceneBuilder: SceneManagerInterface, isControllerVisible: Boolean) {
     this.display = display;
     this.renderer = renderer;
     this.camera = camera;
     this.scene = scene;
     this.sceneBuilder = sceneBuilder;
+    this.isControllerVisible = isControllerVisible;
     this.renderer.vr.setDevice(display);
     new WebXRPolyfill();
       // @ts-ignore
@@ -95,14 +97,14 @@ export default class WebXRManager {
     if (this.gamepadsActive) {
       if (this.gamepads.length === 1) {
         this.rayInput = new RayInput(this.camera, this.gamepads[0]);
-        this.rayInput.addCameraAndControllerToScene(this.scene);
+        this.rayInput.addCameraAndControllerToScene(this.scene, this.isControllerVisible);
       } else {
         this.physicsHandler = new PhysicsHandler();
         this.handController1 = new HandController(this.gamepads[0], this.physicsHandler);
-        this.handController1.addCameraAndControllerToScene(this.scene).then(() => {
+        this.handController1.addCameraAndControllerToScene(this.scene, this.isControllerVisible).then(() => {
           this.handController2 = new HandController(this.gamepads[1], this.physicsHandler);
-          this.handController2.addCameraAndControllerToScene(this.scene).then(() => {
-            this.sceneBuilder.build(this.scene, this.renderer.capabilities.getMaxAnisotropy(), this.physicsHandler);
+          this.handController2.addCameraAndControllerToScene(this.scene, this.isControllerVisible).then(() => {
+            this.sceneBuilder.build(this.camera, this.scene, this.renderer.capabilities.getMaxAnisotropy(), this.physicsHandler);
             })
         });
       }

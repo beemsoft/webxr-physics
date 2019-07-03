@@ -41,14 +41,14 @@ export default class HandController implements ControllerInterface {
     console.log('Construct hand controller: ' + this.gamepad.id);
   }
 
-  addCameraAndControllerToScene(scene: Scene): Promise<boolean> {
+  addCameraAndControllerToScene(scene: Scene, isControllerVisible: Boolean): Promise<boolean> {
     return new Promise( resolve => {
-      this.addFingerTips(scene);
+      this.addFingerTips(scene, isControllerVisible);
       resolve(true);
     })
   }
 
-  addFingerTips(scene: Scene) {
+  addFingerTips(scene: Scene, isControllerVisible: Boolean) {
     let hand_material = new MeshBasicMaterial({
       color: 0xFF3333,
     });
@@ -58,7 +58,6 @@ export default class HandController implements ControllerInterface {
       mass: 0,
       material: this.physicsHandler.handMaterial
     });
-    let position = new Vec3(0,0,0);
     for(let i=0; i<Ncols; i++){
       let radians = this.toRadians(angle * i);
       let rowRadius = this.handSettings.handRadius;
@@ -73,9 +72,12 @@ export default class HandController implements ControllerInterface {
     }
 
     this.handMesh = this.physicsHandler.addVisual(this.handBody, hand_material);
-    scene.add(this.handMesh);
-    this.handMesh.receiveShadow = false;
-    this.physicsHandler.addBody(this.handBody);
+    if (isControllerVisible) {
+      scene.add(this.handMesh);
+      this.handMesh.receiveShadow = false;
+    }
+    let isRightHand = this.gamepad.id.indexOf("Right") > -1;
+    this.physicsHandler.addControllerBody(this.handBody, isRightHand);
   }
 
   getMesh(): Object3D {

@@ -50,6 +50,8 @@ export default class PhysicsHandler {
   constraintDown: boolean;
   private constrainedBody: Body;
   handMaterial = new Material("hand");
+  public rightHandController: Body;
+  public leftHandController: Body;
 
   constructor() {
     this.dt = 1 / 60;
@@ -114,18 +116,33 @@ export default class PhysicsHandler {
     this.world.addBody(body);
   }
 
+  addControllerBody(body: Body, isRightHand: Boolean) {
+    this.addBody(body);
+    if (isRightHand) {
+      this.rightHandController = body;
+    } else {
+      this.leftHandController = body;
+    }
+  }
+
   addVisual(body, material): Object3D {
     let mesh: Object3D;
     if(body instanceof Body){
       mesh = BodyConverter.shape2mesh(body, material);
     }
     if(mesh) {
-      // this.bodies.push(body);
+      mesh.position.x = body.position.x;
+      mesh.position.y = body.position.y;
+      mesh.position.z = body.position.z;
       this.meshes.push(mesh);
+    }
+    if (!mesh.position) {
+      console.log('ERROR: no position for mesh!');
     }
     return mesh;
   }
 
+  // Used for ray handler
   addPointerConstraintToMesh(pos: Vector3, mesh: Mesh) {
     let idx = this.meshes.indexOf(mesh);
     if(idx !== -1){

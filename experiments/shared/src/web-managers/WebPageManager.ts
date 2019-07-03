@@ -26,7 +26,7 @@ export default class WebPageManager {
     this.renderer = new WebGLRenderer({alpha: false});
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.autoClear = false;
-    this.sceneBuilder.build(this.scene, this.renderer.capabilities.getMaxAnisotropy(), new PhysicsHandler());
+    this.sceneBuilder.build(this.camera, this.scene, this.renderer.capabilities.getMaxAnisotropy(), new PhysicsHandler());
     this.addTrackBallControls();
     this.addOutputToPage();
     window.addEventListener( 'resize', this.onWindowResize, false );

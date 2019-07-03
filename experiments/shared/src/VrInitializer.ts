@@ -45,7 +45,7 @@ export class VrInitializer {
     button.textContent = 'ENTER VR';
 
     button.addEventListener('click', () => {
-      webManager = new WebXRManager(display, renderer, camera, scene, this.sceneBuilder);
+      webManager = new WebXRManager(display, renderer, camera, scene, this.sceneBuilder, false);
     });
 
     element.appendChild(button);
@@ -57,7 +57,6 @@ export class VrInitializer {
     scene = new Scene();
     camera = new PerspectiveCamera();
     scene.add(camera);
-    camera.position.set(0, 1, 0);
     renderer = new WebGLRenderer({alpha: true});
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.autoClear = false;

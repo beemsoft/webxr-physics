@@ -2,7 +2,7 @@ import {Object3D, Scene} from 'three';
 
 export interface ControllerInterface {
 
-  addCameraAndControllerToScene(scene: Scene)
+  addCameraAndControllerToScene(scene: Scene, isControllerVisible: Boolean)
 
   update();
 
