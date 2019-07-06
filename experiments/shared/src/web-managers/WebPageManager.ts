@@ -34,7 +34,7 @@ export default class WebPageManager {
   }
 
   private addTrackBallControls() {
-    let controls = new TrackballControls(this.camera);
+    let controls = new TrackballControls(this.camera, this.renderer.domElement);
     controls.rotateSpeed = 2.0;
     controls.zoomSpeed = 1.2;
     controls.panSpeed = 0.8;
