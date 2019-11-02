@@ -71,8 +71,8 @@ export default class SceneManager implements SceneManagerInterface {
     this.addFloor();
 
     if (this.physicsHandler.rightHandController) {
-      this.bodyManager1.createRagdoll(new Vec3(this.camera.position.x, 0, this.camera.position.z), 0.6, 0x772277, false);
-      this.bodyManager2.createRagdoll(new Vec3(0, 0.01, this.camera.position.z - 1.5), 0.6, 0x345522, false);
+      this.bodyManager1.createRagdoll(new Vec3(this.camera.position.x, 0, this.camera.position.z), 0.7, 0x772277, false);
+      this.bodyManager2.createRagdoll(new Vec3(0, 0.01, this.camera.position.z - 1), 0.6, 0x345522, false);
     } else {
       this.bodyManager1.createRagdoll(new Vec3(0, 0.01, 0), 1, 0x772277, false);
       this.bodyManager2.createRagdoll(new Vec3(0, 0.01, 0.5), 0.8, 0x345522, false);
@@ -96,14 +96,14 @@ export default class SceneManager implements SceneManagerInterface {
 
     this.danceManager = new DanceManager(this.bodyManager2);
 
-    this.leftFootDebugMesh = new Mesh(new CircleGeometry(0.1));
-    this.leftFootDebugMesh.position.x = this.danceManager.leftFootPosition.x;
-    this.leftFootDebugMesh.position.z = this.danceManager.leftFootPosition.z;
-    this.scene.add(this.leftFootDebugMesh);
-    this.rightFootDebugMesh = new Mesh(new CircleGeometry(0.1));
-    this.rightFootDebugMesh.position.x = this.danceManager.rightFootPosition.x;
-    this.rightFootDebugMesh.position.z = this.danceManager.rightFootPosition.z;
-    this.scene.add(this.rightFootDebugMesh);
+    // this.leftFootDebugMesh = new Mesh(new CircleGeometry(0.1));
+    // this.leftFootDebugMesh.position.x = this.danceManager.leftFootPosition.x;
+    // this.leftFootDebugMesh.position.z = this.danceManager.leftFootPosition.z;
+    // this.scene.add(this.leftFootDebugMesh);
+    // this.rightFootDebugMesh = new Mesh(new CircleGeometry(0.1));
+    // this.rightFootDebugMesh.position.x = this.danceManager.rightFootPosition.x;
+    // this.rightFootDebugMesh.position.z = this.danceManager.rightFootPosition.z;
+    // this.scene.add(this.rightFootDebugMesh);
   }
 
   private addShoulderConstraints() {
@@ -138,10 +138,10 @@ export default class SceneManager implements SceneManagerInterface {
 
   update() {
     this.danceManager.handleBasicTurn();
-    this.rightFootDebugMesh.position.x = this.danceManager.rightFootPosition.x;
-    this.rightFootDebugMesh.position.z = this.danceManager.rightFootPosition.z;
-    this.leftFootDebugMesh.position.x = this.danceManager.leftFootPosition.x;
-    this.leftFootDebugMesh.position.z = this.danceManager.leftFootPosition.z;
+    // this.rightFootDebugMesh.position.x = this.danceManager.rightFootPosition.x;
+    // this.rightFootDebugMesh.position.z = this.danceManager.rightFootPosition.z;
+    // this.leftFootDebugMesh.position.x = this.danceManager.leftFootPosition.x;
+    // this.leftFootDebugMesh.position.z = this.danceManager.leftFootPosition.z;
 
     if (this.physicsHandler.rightHandController) {
       this.handleReleasingHands();
@@ -169,11 +169,11 @@ export default class SceneManager implements SceneManagerInterface {
       this.params.rightHandY,
       this.params.rightHandZ);
     this.constraintManager.moveJointToPoint(LEFT_FOOT,
-      this.params.headX - FOOT_OFFSET,
+      this.params.headX - FOOT_OFFSET * this.bodyManager1.scale,
       0,
       this.params.headZ);
     this.constraintManager.moveJointToPoint(RIGHT_FOOT,
-      this.params.headX + FOOT_OFFSET,
+      this.params.headX + FOOT_OFFSET * this.bodyManager1.scale,
       0,
       this.params.headZ);
     this.constraintManager.moveJointToPoint(LEFT_FOOT2,
@@ -224,13 +224,13 @@ export default class SceneManager implements SceneManagerInterface {
       ((this.physicsHandler.leftHandController.position.y - 1) * this.bodyManager1.scale) * 2,
       (this.physicsHandler.leftHandController.position.z * this.bodyManager1.scale) * 2);
     this.constraintManager.moveJointToPoint(LEFT_FOOT,
-      ((this.camera.position.x - FOOT_OFFSET) * this.bodyManager1.scale) * 2,
+      this.camera.position.x - FOOT_OFFSET * this.bodyManager1.scale,
       0,
-      ((this.camera.position.z) * this.bodyManager1.scale) * 2);
+      this.camera.position.z * this.bodyManager1.scale);
     this.constraintManager.moveJointToPoint(RIGHT_FOOT,
-      ((this.camera.position.x + FOOT_OFFSET) * this.bodyManager1.scale) * 2,
+      this.camera.position.x + FOOT_OFFSET * this.bodyManager1.scale,
       0,
-      ((this.camera.position.z) * this.bodyManager1.scale) * 2);
+      this.camera.position.z * this.bodyManager1.scale);
   }
 
   private handleReleasingHands() {
