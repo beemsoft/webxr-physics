@@ -1,11 +1,16 @@
 import {
-  Body,
+  Body, ConeTwistConstraint,
   PointToPointConstraint,
-  Quaternion,
   Sphere,
   Vec3
 } from "cannon";
 import PhysicsHandler from './physicsHandler';
+
+interface IDictionary {
+  [key: string]: PointToPointConstraint;
+}
+
+const ZERO_POINT = new Vec3(0, 0, 0);
 
 export default class ConstraintManager {
   constructor(physicsHandler: PhysicsHandler) {
@@ -13,57 +18,51 @@ export default class ConstraintManager {
   }
 
   private physicsHandler: PhysicsHandler;
-  private jointBodies: Body[] = [];
-  private constrainedBodies: Body[] = [];
-  private targets: Vec3[] = [];
-  private pointerConstraints: PointToPointConstraint[] = [];
-  private numberOfConstraints = 0;
+  namedConstraints: IDictionary = {};
 
-  addPointerConstraintToBody(index: number, body: Body, maxForce: number) {
-    this.constrainedBodies[this.numberOfConstraints] = body;
-
-    // Vector to the clicked point, relative to the body
-    let v1 = body.position.vsub(this.constrainedBodies[this.numberOfConstraints].position);
-
-    // Apply anti-quaternion to vector to transform it into the local body coordinate system
-    let antiRot = this.constrainedBodies[this.numberOfConstraints].quaternion.inverse();
-    let pivot = new Quaternion(antiRot.x, antiRot.y, antiRot.z, antiRot.w).vmult(v1); // pivot is not in local body coordinates
-
-    this.jointBodies[this.numberOfConstraints] = this.createJointBody();
-    // Move the cannon click marker particle to the click position
-    this.targets[this.numberOfConstraints] = body.position;
-    // this.jointBodies[this.numberOfConstraints].position.set(x,y,z);
-
-    // Create a new constraint
-    // The pivot for the jointBody is zero
-    this.pointerConstraints[this.numberOfConstraints] = new PointToPointConstraint(body, pivot, this.jointBodies[this.numberOfConstraints], new Vec3(0, 0, 0), maxForce);
-
-    // Add the constraint to world
-    this.physicsHandler.world.addConstraint(this.pointerConstraints[this.numberOfConstraints]);
-    this.numberOfConstraints = this.numberOfConstraints + 1;
+  addPointerConstraintToBody(constraintName: string, body: Body, maxForce: number) {
+      let jointBody = this.createJointBody();
+      let constraint = new PointToPointConstraint(body, ZERO_POINT, jointBody, ZERO_POINT, maxForce);
+      this.namedConstraints[constraintName] = constraint;
+      this.physicsHandler.world.addConstraint(constraint);
   }
 
-  moveJointToPoint(index: number, x: number, y: number, z: number) {
-    if (index < this.jointBodies.length) {
-      this.jointBodies[index].position.set(x, y, z);
-      this.pointerConstraints[index].update();
-    }
+  addConstraintToBody(constraintName: string, constrainedBody: Body, jointBody: Body, maxForce: number) {
+    this.namedConstraints[constraintName] = new PointToPointConstraint(constrainedBody, ZERO_POINT, jointBody, ZERO_POINT, maxForce);
+    this.physicsHandler.world.addConstraint(this.namedConstraints[constraintName]);
+  }
+
+  addConeTwistConstraint(constraintName: string, bodyA: Body, bodyB: Body, pivotA: Vec3, pivotB: Vec3) {
+    this.namedConstraints[constraintName] = new ConeTwistConstraint(bodyA, bodyB, {
+      pivotA: pivotA,
+      pivotB: pivotB,
+      // axisA: new Vec3(1, 0, 0),
+      // axisB: new Vec3( 1, 0, 0),
+      // @ts-ignore
+      angle: Math.PI,
+      twistAngle: Math.PI
+    });
+    this.physicsHandler.world.addConstraint(this.namedConstraints[constraintName]);
+  }
+
+  removeJointConstraint(namedConstraint: string){
+    this.physicsHandler.world.removeConstraint(this.namedConstraints[namedConstraint]);
+    this.namedConstraints[namedConstraint] = null;
+  }
+
+  moveJointToPoint(constraintName: string, x: number, y: number, z: number) {
+    this.namedConstraints[constraintName].bodyB.position.set(x, y, z);
+    this.namedConstraints[constraintName].update();
   }
 
   private createJointBody(): Body {
-    let shape = new Sphere(0.1);
+    let shape = new Sphere(0.01);
     let jointBody = new Body({ mass: 0 });
     jointBody.addShape(shape);
     jointBody.collisionFilterGroup = 0;
     jointBody.collisionFilterMask = 0;
     this.physicsHandler.world.addBody(jointBody);
     return jointBody;
-  }
-
-  update() {
-    for (let i = 0; i !== this.pointerConstraints.length; i++) {
-      // this.moveJointToPoint(i, this.targets[i].x, this.targets[i].y, this.targets[i].z);
-    }
   }
 
 }

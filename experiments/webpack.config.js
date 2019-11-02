@@ -6,6 +6,7 @@ module.exports = {
         basic: './basic/src/',
         backspin: './backspin/src/',
         ragdoll: './ragdoll/src/',
+        basicturn: './basicturn/src/',
         armmodeltest: './armmodeltest/src/'
     },
     devtool: 'inline-source-map',

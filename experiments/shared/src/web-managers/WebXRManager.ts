@@ -65,14 +65,13 @@ export default class WebXRManager {
     if (navigator.xr) {
       document.body.appendChild( renderer.domElement );
       // @ts-ignore
-      navigator.xr.requestDevice()
-        .then((device) => {
-          device.requestSession({ immersive: true })
-            .then(session => {
-              this.session = session;
-              this.startPresenting();
-            });
+      navigator.xr.supportsSession('immersive-vr').then(() => {
+        // @ts-ignore
+        navigator.xr.requestSession('immersive-vr').then(session => {
+          this.session = session;
+          this.startPresenting();
         });
+      });
     }
   }
 
@@ -104,7 +103,7 @@ export default class WebXRManager {
         this.handController1.addCameraAndControllerToScene(this.scene, this.isControllerVisible).then(() => {
           this.handController2 = new HandController(this.gamepads[1], this.physicsHandler);
           this.handController2.addCameraAndControllerToScene(this.scene, this.isControllerVisible).then(() => {
-            this.sceneBuilder.build(this.camera, this.scene, this.renderer.capabilities.getMaxAnisotropy(), this.physicsHandler);
+            this.sceneBuilder.build(this.camera, this.scene, this.renderer.capabilities.getMaxAnisotropy(), this.physicsHandler, this.gamepads);
             })
         });
       }
@@ -112,6 +111,7 @@ export default class WebXRManager {
   }
 
   onXRFrame = () => {
+    this.renderer.clear();
     if (this.gamepadsActive) {
       if (this.gamepads.length === 1) {
         this.rayInput.update();
@@ -133,7 +133,6 @@ export default class WebXRManager {
     this.renderer.vr.enabled = true;
     this.sessionActive = true;
     console.log('Renderer - enable VR');
-    this.renderer.setClearColor( 0xCCCCCC );
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
     console.log('Request present VR display');

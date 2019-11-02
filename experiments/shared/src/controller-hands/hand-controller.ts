@@ -3,6 +3,7 @@ import {Body, Sphere, Vec3} from "cannon";
 import EventEmitter from 'events';
 import {ControllerInterface} from '../web-managers/ControllerInterface';
 import PhysicsHandler from '../physics/physicsHandler';
+import {SceneManagerInterface} from '../scene/SceneManagerInterface';
 
 const DRAG_DISTANCE_PX = 10;
 
@@ -28,6 +29,7 @@ export default class HandController implements ControllerInterface {
     fingerTips: 7, // 4,
     fingerTipSize: 0.019 // 0.01
   };
+  private sceneManager: SceneManagerInterface;
 
   constructor(vrGamepad: Gamepad, physicsHandler: PhysicsHandler) {
     this.gamepad = vrGamepad;

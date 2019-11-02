@@ -26,7 +26,7 @@ export default class WebPageManager {
     this.renderer = new WebGLRenderer({alpha: false});
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.autoClear = false;
-    this.sceneBuilder.build(this.camera, this.scene, this.renderer.capabilities.getMaxAnisotropy(), new PhysicsHandler());
+    this.sceneBuilder.build(this.camera, this.scene, this.renderer.capabilities.getMaxAnisotropy(), new PhysicsHandler(), null);
     this.addTrackBallControls();
     this.addOutputToPage();
     window.addEventListener( 'resize', this.onWindowResize, false );
@@ -34,15 +34,7 @@ export default class WebPageManager {
   }
 
   private addTrackBallControls() {
-    let controls = new TrackballControls(this.camera, this.renderer.domElement);
-    controls.rotateSpeed = 2.0;
-    controls.zoomSpeed = 1.2;
-    controls.panSpeed = 0.8;
-    controls.noPan = false;
-    controls.staticMoving = false;
-    controls.dynamicDampingFactor = 0.3;
-    controls.keys = [65, 83, 68];
-    this.controls = controls;
+    this.controls = new TrackballControls(this.camera, this.renderer.domElement);
   }
 
   private addOutputToPage = () => {
@@ -55,7 +47,6 @@ export default class WebPageManager {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize( window.innerWidth, window.innerHeight );
-    this.controls.handleResize();
   }
 }
 

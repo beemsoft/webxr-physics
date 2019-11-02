@@ -13,9 +13,9 @@ import {SceneManagerInterface} from '../../../shared/src/scene/SceneManagerInter
 import ConstraintManager from '../../../shared/src/physics/ConstraintManager';
 import BodyManager from './human/bodyManager';
 
-const HEAD = 0;
-const LEFT_HAND = 1;
-const RIGHT_HAND = 2;
+const HEAD = "head";
+const LEFT_HAND = "leftHand";
+const RIGHT_HAND = "rightHand";
 
 export default class SceneManager implements SceneManagerInterface {
   private scene: Scene;
