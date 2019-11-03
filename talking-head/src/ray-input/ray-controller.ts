@@ -19,7 +19,7 @@
  */
 
 import {Vector2} from 'three';
-import EventEmitter from 'events';
+import {EventEmitter} from 'events';
 
 const DRAG_DISTANCE_PX = 10;
 
