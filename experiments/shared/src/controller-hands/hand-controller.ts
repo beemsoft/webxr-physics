@@ -1,6 +1,6 @@
 import {MeshBasicMaterial, Object3D, Quaternion, Scene, Vector2} from 'three';
 import {Body, Sphere, Vec3} from "cannon";
-import EventEmitter from 'events';
+import {EventEmitter} from 'events';
 import {ControllerInterface} from '../web-managers/ControllerInterface';
 import PhysicsHandler from '../physics/physicsHandler';
 import {SceneManagerInterface} from '../scene/SceneManagerInterface';
