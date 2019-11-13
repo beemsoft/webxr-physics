@@ -3,7 +3,7 @@ import {ResonanceAudio, Source} from "resonance-audio";
 import cubeSound from '../../cube-sound.wav';
 
 export default class AudioHandler {
-  
+
   private audioReady: boolean;
   private readonly dimensions: { depth: number; width: number; height: number };
   private readonly materials: { left: string; back: string; right: string; front: string; up: string; down: string };
