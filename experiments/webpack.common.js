@@ -1,17 +1,22 @@
 const path = require('path');
+const webpack = require('webpack');
+
+const plugins = [
+    new webpack.ProvidePlugin({
+        THREE: "three"
+    }),
+    new webpack.ProvidePlugin({
+        CANNON: "cannon"
+    })
+];
 
 module.exports = {
-    mode: 'development',
     entry: {
         basic: './basic/src/',
         backspin: './backspin/src/',
         ragdoll: './ragdoll/src/',
         basicturn: './basicturn/src/',
         armmodeltest: './armmodeltest/src/'
-    },
-    devtool: 'inline-source-map',
-    devServer: {
-        disableHostCheck: true
     },
     module: {
         rules: [
@@ -23,16 +28,12 @@ module.exports = {
             {
                 test: /\.(png|svg|jpg|gif|wav)$/,
                 use: [
-                    {
-                        loader: 'file-loader',
-                        options: {
-                            name: '[name].[ext]',
-                        }
-                    }
+                    'file-loader'
                 ]
             }
         ]
     },
+    plugins: plugins,
     resolve: {
         extensions: [ '.tsx', '.ts', '.js' ]
     },
