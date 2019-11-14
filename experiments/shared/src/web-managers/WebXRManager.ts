@@ -104,7 +104,7 @@ export default class WebXRManager {
         this.handController1.addCameraAndControllerToScene(this.scene, this.isControllerVisible).then(() => {
           this.handController2 = new HandController(this.gamepads[1], this.physicsHandler);
           this.handController2.addCameraAndControllerToScene(this.scene, this.isControllerVisible).then(() => {
-            this.sceneBuilder.build(this.camera, this.scene, this.renderer.capabilities.getMaxAnisotropy(), this.physicsHandler);
+            this.sceneBuilder.build(this.camera, this.scene, this.renderer.capabilities.getMaxAnisotropy(), this.physicsHandler, this.gamepads);
             })
         });
       }
