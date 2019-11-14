@@ -112,6 +112,7 @@ export default class WebXRManager {
   }
 
   onXRFrame = () => {
+    this.renderer.clear();
     if (this.gamepadsActive) {
       if (this.gamepads.length === 1) {
         this.rayInput.update();
@@ -133,7 +134,6 @@ export default class WebXRManager {
     this.renderer.vr.enabled = true;
     this.sessionActive = true;
     console.log('Renderer - enable VR');
-    this.renderer.setClearColor( 0xCCCCCC );
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
     console.log('Request present VR display');
