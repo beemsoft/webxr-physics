@@ -40,6 +40,17 @@ module.exports = {
     resolve: {
         extensions: [ '.tsx', '.ts', '.js' ]
     },
+    optimization: {
+        splitChunks: {
+            cacheGroups: {
+                commons: {
+                    name: 'commons',
+                    chunks: 'initial',
+                    minChunks: 2
+                }
+            }
+        }
+    },
     output: {
         filename: '[name]/dist/bundle.js',
         path: path.resolve(__dirname, 'dist')
