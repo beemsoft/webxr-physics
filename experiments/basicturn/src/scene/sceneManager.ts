@@ -13,7 +13,7 @@ import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
 import {SceneManagerInterface} from '../../../shared/src/scene/SceneManagerInterface';
 import ConstraintManager from '../../../shared/src/physics/ConstraintManager';
 import BodyManager from './human/bodyManager';
-import HeadParams from './debug/HeadParams';
+import DebugParams from './debug/DebugParams';
 import DanceManager from './dance/DanceManager';
 
 const HEAD = "head";
@@ -41,7 +41,7 @@ export default class SceneManager implements SceneManagerInterface {
   constraintManager: ConstraintManager;
   private bodyManager1: BodyManager;
   private bodyManager2: BodyManager;
-  private params: HeadParams;
+  private params: DebugParams;
   leftHandReleased: boolean;
   rightHandReleased: boolean;
   private gamepads: Gamepad[];
@@ -91,7 +91,7 @@ export default class SceneManager implements SceneManagerInterface {
     this.constraintManager.addConeTwistConstraint(RIGHT_SHOULDER, this.bodyManager1.upperBody, this.bodyManager1.upperRightArm
       , this.bodyManager1.getRightShoulderPivotA(), this.bodyManager1.getRightShoulderPivotB());
 
-    this.params = new HeadParams(this, this.bodyManager1, this.bodyManager2);
+    this.params = new DebugParams(this, this.bodyManager1, this.bodyManager2);
     this.params.buildGui();
 
     this.danceManager = new DanceManager(this.bodyManager2);

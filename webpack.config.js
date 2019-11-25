@@ -4,12 +4,15 @@ const webpack = require('webpack');
 const plugins = [
     new webpack.ProvidePlugin({
         THREE: "three"
+    }),
+    new webpack.ProvidePlugin({
+        CANNON: "cannon"
     })
 ];
 
 module.exports = {
     mode: 'development',
-    entry: './talking-head/src/index.ts',
+    // entry: './arms-and-feet/src/index.ts',
     devtool: 'inline-source-map',
     devServer: {
         disableHostCheck: true
@@ -34,7 +37,7 @@ module.exports = {
         extensions: [ '.tsx', '.ts', '.js' ]
     },
     output: {
-        filename: 'talking-head/dist/bundle.js',
+        // filename: 'arms-and-feet/dist/bundle.js',
         path: path.resolve(__dirname, 'dist')
     }
 };

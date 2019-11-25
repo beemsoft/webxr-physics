@@ -3,7 +3,7 @@ import {GUI} from 'dat.gui';
 import BodyManager from '../human/bodyManager';
 import {Vec3} from 'cannon';
 
-export default class HeadParams {
+export default class DebugParams {
   headX: number;
   headY: number;
   headZ: number;
