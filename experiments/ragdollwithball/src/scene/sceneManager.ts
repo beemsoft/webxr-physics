@@ -2,12 +2,12 @@ import {
   DirectionalLight,
   HemisphereLight,
   Mesh,
-  MeshBasicMaterial,
+  MeshBasicMaterial, MeshPhongMaterial,
   PerspectiveCamera,
   PlaneGeometry,
-  Scene
+  Scene, SphereGeometry, TextureLoader, Vector2
 } from 'three';
-import {Body, Plane, Vec3} from 'cannon';
+import {Body, Material, Plane, Sphere, Vec3} from 'cannon';
 import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
 import {SceneManagerInterface} from '../../../shared/src/scene/SceneManagerInterface';
 import ConstraintManager from '../../../shared/src/physics/ConstraintManager';
@@ -33,10 +33,13 @@ export default class SceneManager implements SceneManagerInterface {
   leftHandReleased: boolean;
   rightHandReleased: boolean;
   private gamepads: Gamepad[];
-  private isLeftHandHoldingLeftHand: boolean;
-  private isLeftHandHoldingRightHand: boolean;
-  private isRightHandHoldingLeftHand: boolean;
-  private isRightHandHoldingRightHand: boolean;
+  private loader: TextureLoader;
+  private ball: Body;
+  private ballMaterial: Material;
+
+  constructor() {
+    this.loader = new TextureLoader();
+  }
 
   build(camera: PerspectiveCamera, scene: Scene, maxAnisotropy: number, physicsHandler: PhysicsHandler, gamepads: Gamepad[]) {
     this.scene = scene;
@@ -44,7 +47,7 @@ export default class SceneManager implements SceneManagerInterface {
     this.physicsHandler = physicsHandler;
     this.constraintManager = new ConstraintManager(physicsHandler);
     this.bodyManager1 = new BodyManager(scene, physicsHandler);
-    this.physicsHandler.dt = 1/180;
+    this.physicsHandler.dt = 1/80;
     this.physicsHandler.world.gravity.set(0, -9.8,0);
     let light = new DirectionalLight(0xFFFFFF, 1);
     light.position.set(1, 10, -0.5);
@@ -54,6 +57,7 @@ export default class SceneManager implements SceneManagerInterface {
 
     this.addFloor();
 
+    this.addBall();
     if (this.physicsHandler.rightHandController) {
       this.bodyManager1.createRagdoll(new Vec3(this.camera.position.x, 0, this.camera.position.z), 0.7, 0x772277, false);
     } else {
@@ -80,6 +84,45 @@ export default class SceneManager implements SceneManagerInterface {
     floorBody.addShape(new Plane());
     this.physicsHandler.addBody(floorBody);
     this.physicsHandler.addMesh(mesh);
+  }
+
+  addBall(){
+    const scale = 1;
+    const ballRadius = 0.17 * scale;
+
+    let ballSphere = new SphereGeometry( ballRadius, 16, 16 );
+    let ballMaterial = new MeshPhongMaterial({
+      map: this.loader.load('/textures/ball.png'),
+      normalMap: this.loader.load('/textures/ball_normal.png'),
+      shininess: 20,
+      reflectivity: 2,
+      normalScale: new Vector2(0.5, 0.5)
+    });
+
+    let ballMesh = new Mesh(ballSphere, ballMaterial);
+    ballMesh.castShadow = true;
+
+    this.physicsHandler.addMesh(ballMesh);
+
+    let damping = 0.01;
+    let mass = 0.1; // 0.6237;
+    let sphereShape = new Sphere(ballRadius);
+    this.ballMaterial = new Material("ball");
+    let ball = new Body({
+      mass: mass,
+      material: this.ballMaterial
+    });
+
+    ball.addShape(sphereShape);
+    ball.linearDamping = damping;
+
+    ball.position.set(0,5,0);
+
+    this.physicsHandler.addBody(ball);
+
+    this.ball = ball;
+    this.scene.add(ballMesh);
+    this.physicsHandler.addBallHandContactMaterial(this.ballMaterial, 0.001, 0.1);
   }
 
   update() {
