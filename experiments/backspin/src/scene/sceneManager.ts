@@ -87,7 +87,7 @@ export default class SceneManager implements SceneManagerInterface {
 
     this.ball = ball;
     this.scene.add(ballMesh);
-    this.physicsHandler.addBallHandContactMaterial(this.ballMaterial, 0.001, 0.1);
+    this.physicsHandler.addContactMaterial(this.ballMaterial, this.physicsHandler.handMaterial, 0.001, 0.1);
   }
 
   addFingerTips() {

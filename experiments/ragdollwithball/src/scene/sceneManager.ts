@@ -4,8 +4,8 @@ import {
   Mesh,
   MeshBasicMaterial, MeshPhongMaterial,
   PerspectiveCamera,
-  PlaneGeometry,
-  Scene, SphereGeometry, TextureLoader, Vector2
+  PlaneGeometry, RepeatWrapping,
+  Scene, SphereGeometry, TextureLoader, Vector2, Vector3
 } from 'three';
 import {Body, Material, Plane, Sphere, Vec3} from 'cannon';
 import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
@@ -35,7 +35,7 @@ export default class SceneManager implements SceneManagerInterface {
   private gamepads: Gamepad[];
   private loader: TextureLoader;
   private ball: Body;
-  private ballMaterial: Material;
+  private ballMaterial = new Material("ball");
 
   constructor() {
     this.loader = new TextureLoader();
@@ -77,13 +77,42 @@ export default class SceneManager implements SceneManagerInterface {
     this.params.buildGui();
   }
 
-  addFloor() {
+  addFloor_org() {
     let mesh = new Mesh(new PlaneGeometry(28, 15, 1, 1), new MeshBasicMaterial());
     let floorBody = new Body({ mass: 0});
     floorBody.quaternion.setFromAxisAngle(new Vec3(1, 0, 0), Math.PI / -2);
     floorBody.addShape(new Plane());
     this.physicsHandler.addBody(floorBody);
     this.physicsHandler.addMesh(mesh);
+  }
+
+  addFloor() {
+    let geometry = new PlaneGeometry(28, 15, 1, 1);
+    let texture = this.loader.load('/textures/basketball-court-tiles-396756-free-texture-wall-pine-construction-tile.jpg', function (texture) {
+
+      texture.wrapS = texture.wrapT = RepeatWrapping;
+      texture.offset.set(0, 0);
+      texture.repeat.set(5, 5);
+
+    });
+    let material = new MeshBasicMaterial({
+      map: texture
+    });
+    let mesh = new Mesh(geometry, material);
+    mesh.quaternion.setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2);
+    mesh.receiveShadow = true;
+    // mesh.position.y -= 2;
+    this.scene.add(mesh);
+    // this.floor = mesh;
+    const groundMaterial = new Material("floor");
+    let groundShape = new Plane();
+    let groundBody = new Body({ mass: 0, material: groundMaterial });
+    groundBody.addShape(groundShape);
+    groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0),-Math.PI/2);
+    groundBody.position.y -= 2;
+    this.physicsHandler.addBody(groundBody);
+    this.physicsHandler.addMesh(mesh);
+    this.physicsHandler.addContactMaterial(this.ballMaterial, groundMaterial, 0.001, 0.1);
   }
 
   addBall(){
@@ -107,7 +136,6 @@ export default class SceneManager implements SceneManagerInterface {
     let damping = 0.01;
     let mass = 0.1; // 0.6237;
     let sphereShape = new Sphere(ballRadius);
-    this.ballMaterial = new Material("ball");
     let ball = new Body({
       mass: mass,
       material: this.ballMaterial
@@ -122,7 +150,7 @@ export default class SceneManager implements SceneManagerInterface {
 
     this.ball = ball;
     this.scene.add(ballMesh);
-    this.physicsHandler.addBallHandContactMaterial(this.ballMaterial, 0.001, 0.1);
+    this.physicsHandler.addContactMaterial(this.ballMaterial, this.physicsHandler.handMaterial, 0.001, 0.1);
   }
 
   update() {

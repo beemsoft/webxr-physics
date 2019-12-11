@@ -50,7 +50,7 @@ export default class SceneManager implements SceneManagerInterface {
     this.cubeBody.addShape(cubeShape);
     this.physicsHandler.addBody(this.cubeBody);
     this.scene.add(this.cube);
-    this.physicsHandler.addCubeHandContactMaterial(this.cubeMaterial, 0.001, 0.1);
+    this.physicsHandler.addContactMaterial(this.cubeMaterial, this.physicsHandler.handMaterial, 0.001, 0.1);
 
     this.audioHandler.audioElement.play();
 

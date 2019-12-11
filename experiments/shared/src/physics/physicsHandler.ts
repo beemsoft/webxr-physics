@@ -49,7 +49,7 @@ export default class PhysicsHandler {
   pointerConstraint: PointToPointConstraint;
   constraintDown: boolean;
   private constrainedBody: Body;
-  handMaterial = new Material("hand");
+  public handMaterial = new Material("hand");
   public rightHandController: Body;
   public leftHandController: Body;
 
@@ -63,13 +63,8 @@ export default class PhysicsHandler {
     this.constraintDown = false
   }
 
-  addBallHandContactMaterial(ballMaterial: Material, friction, restitution) {
-    let contactMaterial = new ContactMaterial(ballMaterial, this.handMaterial, { friction: friction, restitution: restitution });
-    this.world.addContactMaterial(contactMaterial);
-  }
-
-  addCubeHandContactMaterial(material: Material, friction, restitution) {
-    let contactMaterial = new ContactMaterial(material, this.handMaterial, { friction: friction, restitution: restitution });
+  addContactMaterial(material1: Material, material2: Material, friction, restitution) {
+    let contactMaterial = new ContactMaterial(material1, material2, { friction: friction, restitution: restitution });
     this.world.addContactMaterial(contactMaterial);
   }
 
