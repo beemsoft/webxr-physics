@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "stats": "webpack --config webpack.prod.js --profile --json > stats.json",
-    "start": "webpack-dev-server --open --config webpack.dev.js",
+    "start": "webpack-dev-server --open --https  --config webpack.dev.js",
     "build": "webpack --progress --config webpack.prod.js"
   },
   "author": "Hans Beemsterboer",
