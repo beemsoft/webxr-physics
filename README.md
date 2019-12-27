@@ -7,10 +7,10 @@ with the following updates:
 * Replaced the WebVR API with the new WebXR API, while still focusing on VR.
 * Migrated the codebase to TypeScript and webpack.
 
-It combines the [Cannon.js physics library][Cannon.js] with the [Ray Input library][Ray-Input].
+It uses the [Cannon.js physics library][Cannon.js].
 Spatial audio is added using the [Resonance Audio Web SDK][Resonance-audio].
 
-Tested with Oculus Go headset + controller
+Tested with Oculus Quest headset + 2 controllers
 
 [WebVR-Physics]: https://github.com/beemsoft/webvr-physics
 [Ray-Input]: https://github.com/borismus/ray-input
