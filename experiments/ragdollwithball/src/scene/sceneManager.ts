@@ -1,11 +1,19 @@
 import {
+  BackSide,
+  BoxGeometry,
   DirectionalLight,
   HemisphereLight,
   Mesh,
-  MeshBasicMaterial, MeshPhongMaterial,
+  MeshBasicMaterial,
+  MeshPhongMaterial,
   PerspectiveCamera,
-  PlaneGeometry, RepeatWrapping,
-  Scene, SphereGeometry, TextureLoader, Vector2, Vector3
+  PlaneGeometry,
+  RepeatWrapping,
+  Scene,
+  SphereGeometry,
+  TextureLoader,
+  Vector2,
+  Vector3
 } from 'three';
 import {Body, Material, Plane, Sphere, Vec3} from 'cannon';
 import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
@@ -13,6 +21,8 @@ import {SceneManagerInterface} from '../../../shared/src/scene/SceneManagerInter
 import ConstraintManager from '../../../shared/src/physics/ConstraintManager';
 import BodyManager from './human/bodyManager';
 import DebugParams from './debug/DebugParams';
+import {ControllerInterface} from '../../../shared/src/web-managers/ControllerInterface';
+import Box = CANNON.Box;
 
 const HEAD = "head";
 const LEFT_HAND = "leftHand";
@@ -32,7 +42,8 @@ export default class SceneManager implements SceneManagerInterface {
   private params: DebugParams;
   leftHandReleased: boolean;
   rightHandReleased: boolean;
-  private gamepads: Gamepad[];
+  private controllerL: ControllerInterface;
+  private controllerR: ControllerInterface;
   private loader: TextureLoader;
   private ball: Body;
   private ballMaterial = new Material("ball");
@@ -41,7 +52,7 @@ export default class SceneManager implements SceneManagerInterface {
     this.loader = new TextureLoader();
   }
 
-  build(camera: PerspectiveCamera, scene: Scene, maxAnisotropy: number, physicsHandler: PhysicsHandler, gamepads: Gamepad[]) {
+  build(camera: PerspectiveCamera, scene: Scene, maxAnisotropy: number, physicsHandler: PhysicsHandler) {
     this.scene = scene;
     this.camera = camera;
     this.physicsHandler = physicsHandler;
@@ -51,15 +62,16 @@ export default class SceneManager implements SceneManagerInterface {
     this.physicsHandler.world.gravity.set(0, -9.8,0);
     let light = new DirectionalLight(0xFFFFFF, 1);
     light.position.set(1, 10, -0.5);
+    this.scene.add(camera);
     this.scene.add(light);
     this.scene.add(new HemisphereLight(0x909090, 0x404040));
-    this.gamepads = gamepads;
 
     this.addFloor();
+    // this.addHall();
 
     this.addBall();
     if (this.physicsHandler.rightHandController) {
-      this.bodyManager1.createRagdoll(new Vec3(this.camera.position.x, 0, this.camera.position.z), 0.7, 0x772277, false);
+      this.bodyManager1.createRagdoll(new Vec3(this.camera.position.x, 0, this.camera.position.z), 1, 0x772277, false);
     } else {
       this.bodyManager1.createRagdoll(new Vec3(0, 0.01, 0), 1, 0x772277, false);
     }
@@ -84,6 +96,49 @@ export default class SceneManager implements SceneManagerInterface {
     floorBody.addShape(new Plane());
     this.physicsHandler.addBody(floorBody);
     this.physicsHandler.addMesh(mesh);
+  }
+
+  addWall(length, height, positionX, positionZ, rotationY) {
+    let wallMesh = new Mesh(
+      new BoxGeometry( length, height, 0.1, 8, 8, 1 ),
+      new MeshBasicMaterial( {
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0
+      } )
+    );
+
+    this.physicsHandler.addMesh(wallMesh);
+
+    let wallShape = new Box(new Vec3(length, height, 0.1));
+
+    let wall = new Body({
+      mass: 0
+    });
+    wall.addShape(wallShape);
+    wall.position.x = positionX;
+    wall.position.z = positionZ;
+    wall.quaternion.setFromAxisAngle(new Vec3(0, 1, 0), rotationY);
+
+    this.physicsHandler.addBody(wall);
+  }
+
+  addHall() {
+
+    let sphere = new Mesh(
+      new SphereGeometry(10, 32, 32),
+      new MeshBasicMaterial({
+        map: this.loader.load('/textures/basketball/equirectangular_court.jpg'),
+        side: BackSide
+      })
+    );
+    sphere.scale.x = 2;
+    this.scene.add(sphere);
+
+    this.addWall(28, 20, 0, 7.5, 0);
+    this.addWall(28, 20, 0, -7.5, 0);
+    this.addWall(15, 20, 14, 0, Math.PI / 2);
+    this.addWall(15, 20, -14, 0, Math.PI / 2);
   }
 
   addFloor() {
@@ -192,21 +247,35 @@ export default class SceneManager implements SceneManagerInterface {
       (this.camera.position.z * this.bodyManager1.scale) * 2);
     this.constraintManager.moveJointToPoint(RIGHT_HAND,
       (this.physicsHandler.rightHandController.position.x * this.bodyManager1.scale) * 2,
-      ((this.physicsHandler.rightHandController.position.y - 1) * this.bodyManager1.scale) * 2,
+      ((this.physicsHandler.rightHandController.position.y) * this.bodyManager1.scale) * 2,
       (this.physicsHandler.rightHandController.position.z * this.bodyManager1.scale) * 2);
 
     this.constraintManager.moveJointToPoint(LEFT_HAND,
       (this.physicsHandler.leftHandController.position.x * this.bodyManager1.scale) * 2,
-      ((this.physicsHandler.leftHandController.position.y - 1) * this.bodyManager1.scale) * 2,
+      ((this.physicsHandler.leftHandController.position.y) * this.bodyManager1.scale) * 2,
       (this.physicsHandler.leftHandController.position.z * this.bodyManager1.scale) * 2);
     this.constraintManager.moveJointToPoint(LEFT_FOOT,
-      this.camera.position.x - FOOT_OFFSET * this.bodyManager1.scale,
-      0,
-      this.camera.position.z * this.bodyManager1.scale);
+      // (this.camera.position.x - FOOT_OFFSET) * this.bodyManager1.scale,
+      this.bodyManager1.upperLeftArm.position.x,
+      this.camera.position.y -1.5,
+      this.bodyManager1.upperLeftArm.position.z
+      // this.camera.position.z * this.bodyManager1.scale
+    );
     this.constraintManager.moveJointToPoint(RIGHT_FOOT,
-      this.camera.position.x + FOOT_OFFSET * this.bodyManager1.scale,
-      0,
-      this.camera.position.z * this.bodyManager1.scale);
+      // (this.camera.position.x + FOOT_OFFSET) * this.bodyManager1.scale,
+      this.bodyManager1.upperRightArm.position.x,
+      this.camera.position.y -1.5,
+      this.bodyManager1.upperRightArm.position.z
+      // this.camera.position.z * this.bodyManager1.scale
+    );
+  }
+
+  addLeftController(controller: ControllerInterface) {
+    this.controllerL = controller;
+  }
+
+  addRightController(controller: ControllerInterface) {
+    this.controllerR = controller;
   }
 
 }

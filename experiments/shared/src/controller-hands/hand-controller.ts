@@ -1,14 +1,12 @@
-import {MeshBasicMaterial, Object3D, Quaternion, Scene, Vector2} from 'three';
+import {MeshBasicMaterial, Object3D, Scene, Vector2} from 'three';
 import {Body, Sphere, Vec3} from "cannon";
 import {EventEmitter} from 'events';
 import {ControllerInterface} from '../web-managers/ControllerInterface';
 import PhysicsHandler from '../physics/physicsHandler';
-import {SceneManagerInterface} from '../scene/SceneManagerInterface';
-
-const DRAG_DISTANCE_PX = 10;
+import {XRFrameOfReference, XRInputSource, XRReferenceSpace} from '../WebXRDeviceAPI';
 
 export default class HandController implements ControllerInterface {
-  private gamepad: Gamepad;
+  private inputSource: XRInputSource;
   private physicsHandler: PhysicsHandler;
   private pointer: Vector2;
   private lastPointer: Vector2;
@@ -16,7 +14,7 @@ export default class HandController implements ControllerInterface {
   private dragDistance: number;
   private isDragging: boolean;
   private size: any;
-  private wasGamepadPressed: boolean;
+  private wasPressed2: boolean;
   public controllerEventEmitter = new EventEmitter();
   private handMesh: Object3D;
   private handBody: Body;
@@ -29,10 +27,9 @@ export default class HandController implements ControllerInterface {
     fingerTips: 7, // 4,
     fingerTipSize: 0.019 // 0.01
   };
-  private sceneManager: SceneManagerInterface;
 
-  constructor(vrGamepad: Gamepad, physicsHandler: PhysicsHandler) {
-    this.gamepad = vrGamepad;
+  constructor(inputSource: XRInputSource, physicsHandler: PhysicsHandler) {
+    this.inputSource = inputSource;
     this.physicsHandler = physicsHandler;
     this.pointer = new Vector2();
     this.lastPointer = new Vector2();
@@ -40,7 +37,7 @@ export default class HandController implements ControllerInterface {
     this.pointerNdc = new Vector2();
     this.dragDistance = 0;
     this.isDragging = false;
-    console.log('Construct hand controller: ' + this.gamepad.id);
+    console.log('Construct hand controller: ' + this.inputSource.handedness);
   }
 
   addCameraAndControllerToScene(scene: Scene, isControllerVisible: Boolean): Promise<boolean> {
@@ -70,7 +67,7 @@ export default class HandController implements ControllerInterface {
         rowRadius * Math.cos(radians)
       );
 
-      this.handBody.addShape(new Sphere(0.05), relativePosition);
+      this.handBody.addShape(new Sphere(0.03), relativePosition);
     }
 
     this.handMesh = this.physicsHandler.addVisual(this.handBody, hand_material);
@@ -78,7 +75,7 @@ export default class HandController implements ControllerInterface {
       scene.add(this.handMesh);
       this.handMesh.receiveShadow = false;
     }
-    let isRightHand = this.gamepad.id.indexOf("Right") > -1;
+    let isRightHand = this.inputSource.handedness === 'right';
     this.physicsHandler.addControllerBody(this.handBody, isRightHand);
   }
 
@@ -90,65 +87,35 @@ export default class HandController implements ControllerInterface {
     this.size = size;
   }
 
-  update() {
-    let numberArray = [];
-    numberArray[0] = this.gamepad.pose.orientation[0];
-    numberArray[1] = this.gamepad.pose.orientation[1];
-    numberArray[2] = this.gamepad.pose.orientation[2];
-    numberArray[3] = this.gamepad.pose.orientation[3];
-    let controllerOrientation = new Quaternion().fromArray(numberArray);
-    // this.handMesh.setRotationFromQuaternion(controllerOrientation);
-    this.handBody.quaternion.x = this.gamepad.pose.orientation[0];
-    this.handBody.quaternion.y = this.gamepad.pose.orientation[1];
-    this.handBody.quaternion.z = this.gamepad.pose.orientation[2];
-    this.handBody.quaternion.w = this.gamepad.pose.orientation[3];
-    // this.handMesh.position.x = this.gamepad.pose.position[0];
-    // this.handMesh.position.y = this.gamepad.pose.position[1];
-    // this.handMesh.position.z = this.gamepad.pose.position[2];
-    this.handBody.position.x = this.gamepad.pose.position[0];
-    this.handBody.position.y = this.gamepad.pose.position[1]+.5;
-    this.handBody.position.z = this.gamepad.pose.position[2];
+  isPressed() {
+    this.wasPressed2 = true;
   }
 
-  getGamepadButtonPressed_() {
-    for (let j = 0; j < this.gamepad.buttons.length; ++j) {
-      if (this.gamepad.buttons[j].pressed) {
-        return true;
+  wasPressed(): Boolean {
+    return this.wasPressed2;
+  }
+
+  reset() {
+    this.wasPressed2 = false;
+  }
+
+  update(frame: XRFrameOfReference, refSpace: XRReferenceSpace) {
+    // @ts-ignore
+    if (this.inputSource.gripSpace) {
+      // @ts-ignore
+      let gripPose = frame.getPose(this.inputSource.gripSpace, refSpace);
+      if (gripPose) {
+        const orientation = gripPose.transform.orientation;
+        const position = gripPose.transform.position;
+        this.handBody.quaternion.w = orientation.w;
+        this.handBody.quaternion.x = orientation.x;
+        this.handBody.quaternion.y = orientation.y;
+        this.handBody.quaternion.z = orientation.z;
+        this.handBody.position.x = position.x;
+        this.handBody.position.y = position.y;
+        this.handBody.position.z = position.z;
       }
     }
-    return false;
-  }
-
-  updatePointer_(e) {
-    this.pointer.set(e.clientX, e.clientY);
-    this.pointerNdc.x = (e.clientX / this.size.width) * 2 - 1;
-    this.pointerNdc.y = - (e.clientY / this.size.height) * 2 + 1;
-  }
-
-  updateDragDistance_() {
-    if (this.isDragging) {
-      const distance = this.lastPointer.sub(this.pointer).length();
-      this.dragDistance += distance;
-      this.lastPointer.copy(this.pointer);
-
-      if (this.dragDistance > DRAG_DISTANCE_PX) {
-        this.controllerEventEmitter.emit('raycancel');
-        this.isDragging = false;
-      }
-    }
-  }
-
-  startDragging_(e) {
-    this.isDragging = true;
-    this.lastPointer.set(e.clientX, e.clientY);
-  }
-
-  endDragging_() {
-    if (this.dragDistance < DRAG_DISTANCE_PX) {
-      this.controllerEventEmitter.emit('rayup');
-    }
-    this.dragDistance = 0;
-    this.isDragging = false;
   }
 
   toRadians(angle) {

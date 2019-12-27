@@ -14,6 +14,7 @@ import {Body, Material, Sphere, Vec3} from 'cannon';
 import {SceneManagerInterface} from '../../../shared/src/scene/SceneManagerInterface';
 import {TextMesh} from '../../../shared/src/text/TextMesh';
 import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
+import {ControllerInterface} from '../../../shared/src/web-managers/ControllerInterface';
 
 export default class SceneManager implements SceneManagerInterface {
   private scene: Scene;
@@ -37,7 +38,6 @@ export default class SceneManager implements SceneManagerInterface {
     this.physicsHandler.world.gravity.set(0, -9.8,0);
     this.addLight();
     this.addBall();
-    this.addFingerTips();
     let text = new TextMesh( maxAnisotropy, 1024, 512 );
     scene.add( text.mesh );
     text.mesh.position.set(0, 1, -2);
@@ -126,11 +126,16 @@ export default class SceneManager implements SceneManagerInterface {
   }
 
   update() {
-    this.physicsHandler.updatePhysics();
     if (this.ball.position.y < 0) {
       this.ball.velocity = new Vec3(0,0,0);
       this.ball.angularVelocity = new Vec3(0,0,0);
       this.ball.position.set(0,5,0);
     }
+  }
+
+  addLeftController(controller: ControllerInterface) {
+  }
+
+  addRightController(controller: ControllerInterface) {
   }
 }

@@ -12,6 +12,7 @@ import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
 import {SceneManagerInterface} from '../../../shared/src/scene/SceneManagerInterface';
 import AudioHandler from '../audio/audioHandler';
 import {TextMesh} from '../../../shared/src/text/TextMesh';
+import {ControllerInterface} from '../../../shared/src/web-managers/ControllerInterface';
 
 export default class SceneManager implements SceneManagerInterface {
   private scene: Scene;
@@ -20,6 +21,7 @@ export default class SceneManager implements SceneManagerInterface {
   private cubeBody: Body;
   private audioHandler: AudioHandler;
   private cubeMaterial: Material;
+  private rotation = 0;
 
   constructor() {
     this.audioHandler = new AudioHandler();
@@ -61,8 +63,16 @@ export default class SceneManager implements SceneManagerInterface {
   }
 
   update() {
-    this.physicsHandler.updatePhysics();
+    this.rotation += 0.005;
+    this.cubeBody.quaternion.setFromAxisAngle(new Vec3(0,1,0), this.rotation);
+    this.cubeBody.quaternion.normalize();
     this.audioHandler.setPosition(this.cube.position);
     this.audioHandler.setVolume(this.cube.position);
+  }
+
+  addLeftController(controller: ControllerInterface) {
+  }
+
+  addRightController(controller: ControllerInterface) {
   }
 }

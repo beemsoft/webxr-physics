@@ -11,7 +11,7 @@ export default class BodyManager {
   public rightHand: Body;
   public headBody: Body;
   upperBody: Body;
-  scale = 0.6;
+  scale = 1; //  0.6;
 
   constructor(scene: Scene, physicsHandler: PhysicsHandler) {
     this.scene = scene;
@@ -33,7 +33,7 @@ export default class BodyManager {
   }
 
   createRagdoll(){
-    let position = new Vec3(0,0.01,-1);
+    let position = new Vec3(0,-2,-1);
     this.dollPosition = position;
 
     let numBodiesAtStart = this.physicsHandler.world.bodies.length;

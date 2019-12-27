@@ -27,120 +27,179 @@
  SOFTWARE.
  */
 
-import {PerspectiveCamera, Scene, WebGLRenderer} from 'three';
-import WebXRPolyfill from 'webxr-polyfill';
+import {ArrayCamera, PerspectiveCamera, Scene, Vector3, Vector4, WebGLRenderer} from 'three';
 import PhysicsHandler from '../physics/physicsHandler';
-import RayInput from '../ray-input/ray-input';
 import {SceneManagerInterface} from '../scene/SceneManagerInterface';
 import {ControllerInterface} from './ControllerInterface';
 import HandController from '../controller-hands/hand-controller';
 
 export default class WebXRManager {
   private readonly camera: PerspectiveCamera;
-  private display: VRDisplay;
   private renderer: WebGLRenderer;
+  private gl: WebGLRenderingContext;
   private readonly scene: Scene;
+  private xrReferenceSpace = null;
 
   sessionActive = false;
   private session = null;
-  private gamepads: Gamepad[];
-  private gamepadsActive = false;
-  private rayInput: ControllerInterface;
-  private handController1: ControllerInterface;
-  private handController2: ControllerInterface;
+  private controllerL: ControllerInterface;
+  private controllerR: ControllerInterface;
   private physicsHandler: PhysicsHandler;
   private sceneBuilder: SceneManagerInterface;
-  private isControllerVisible: Boolean;
+  private readonly isControllerVisible: Boolean;
 
-  constructor(display: VRDisplay, renderer: WebGLRenderer, camera: PerspectiveCamera, scene: Scene, sceneBuilder: SceneManagerInterface, isControllerVisible: Boolean) {
-    this.display = display;
+  private cameraL = new PerspectiveCamera(75, 1, 0.1, 100);
+  private cameraR = new PerspectiveCamera(75, 1, 0.1, 100);
+  private cameraVR = new ArrayCamera( [ this.cameraL, this.cameraR ] );
+  private cameraLPos = new Vector3();
+  private cameraRPos = new Vector3();
+
+  constructor(renderer: WebGLRenderer, camera: PerspectiveCamera, scene: Scene, sceneBuilder: SceneManagerInterface, isControllerVisible: Boolean) {
+    this.cameraL.layers.enable(1);
+    // @ts-ignore
+    this.cameraL.viewport = new Vector4();
+    this.cameraR.layers.enable(2);
+    // @ts-ignore
+    this.cameraR.viewport = new Vector4();
+    this.cameraVR.layers.enable(1);
+    this.cameraVR.layers.enable(2);
+    this.cameraVR.fov = 75;
+
     this.renderer = renderer;
     this.camera = camera;
     this.scene = scene;
     this.sceneBuilder = sceneBuilder;
     this.isControllerVisible = isControllerVisible;
-    this.renderer.vr.setDevice(display);
-    new WebXRPolyfill();
-      // @ts-ignore
-    if (navigator.xr) {
-      document.body.appendChild( renderer.domElement );
-      // @ts-ignore
-      navigator.xr.requestDevice()
-        .then((device) => {
-          device.requestSession({ immersive: true })
-            .then(session => {
-              this.session = session;
-              this.startPresenting();
-            });
-        });
-    }
-  }
 
-  getVRGamepad = () => {
-    let gamepads = navigator.getGamepads && navigator.getGamepads();
-    for (let i = 0; i < gamepads.length; i++) {
-      let gamepad = gamepads[i];
-      if (gamepad && gamepad.pose) {
-        console.log('gamepad: ' + gamepad.id);
-        this.gamepadsActive = true;
-      }
-    }
-    if (this.gamepadsActive) {
-      this.gamepads = gamepads;
-    } else {
-      console.log('no gamepad found');
-    }
-  };
+    // @ts-ignore
+    navigator.xr.requestSession('immersive-vr')
+      .then(session => {
+        this.session = session;
+        this.session.addEventListener('select', this.onSelect);
+        let glCanvas: HTMLCanvasElement = document.createElement('canvas');
+        this.gl = <WebGLRenderingContext>glCanvas.getContext('webgl', {xrCompatible: true});
+        this.renderer = new WebGLRenderer({canvas: glCanvas, context: this.gl});
+        // @ts-ignore
+        let xrLayer = new XRWebGLLayer(this.session, this.gl);
+        this.session.updateRenderState({baseLayer: xrLayer});
+        this.session.requestReferenceSpace('local')
+          .then(space => {
+            this.xrReferenceSpace = space;
+          }, error => {
+            console.log(error.message);
+          })
+          .then(() => {
+            this.initControllersAndBuildScene();
+            this.startPresenting();
+          })
+      })
+      .catch(error => {
+        console.log(error.message);
+      });
+  }
 
   initControllersAndBuildScene() {
-    this.getVRGamepad();
-    if (this.gamepadsActive) {
-      if (this.gamepads.length === 1) {
-        this.rayInput = new RayInput(this.camera, this.gamepads[0]);
-        this.rayInput.addCameraAndControllerToScene(this.scene, this.isControllerVisible);
+    this.physicsHandler = new PhysicsHandler();
+    let inputSources = this.session.inputSources;
+    let inputSourceL = null;
+    let inputSourceR = null;
+    if (inputSources.length == 2) {
+      if (inputSources[0].handedness === 'right') {
+        inputSourceR = inputSources[0];
+        inputSourceL = inputSources[1];
       } else {
-        this.physicsHandler = new PhysicsHandler();
-        this.handController1 = new HandController(this.gamepads[0], this.physicsHandler);
-        this.handController1.addCameraAndControllerToScene(this.scene, this.isControllerVisible).then(() => {
-          this.handController2 = new HandController(this.gamepads[1], this.physicsHandler);
-          this.handController2.addCameraAndControllerToScene(this.scene, this.isControllerVisible).then(() => {
-            this.sceneBuilder.build(this.camera, this.scene, this.renderer.capabilities.getMaxAnisotropy(), this.physicsHandler, this.gamepads);
-            })
-        });
+        inputSourceR = inputSources[1];
+        inputSourceL = inputSources[0];
       }
+      this.controllerL = new HandController(inputSourceL, this.physicsHandler);
+      this.controllerL.addCameraAndControllerToScene(this.scene, this.isControllerVisible).then(() => {
+        this.controllerR = new HandController(inputSourceR, this.physicsHandler);
+        this.controllerR.addCameraAndControllerToScene(this.scene, this.isControllerVisible).then(() => {
+          this.sceneBuilder.build(this.cameraVR, this.scene, this.renderer.capabilities.getMaxAnisotropy(), this.physicsHandler);
+          this.sceneBuilder.addLeftController(this.controllerL);
+          this.sceneBuilder.addRightController(this.controllerR);
+        })
+      });
     }
   }
 
-  onXRFrame = () => {
+  onXRFrame = (t, frame) => {
     this.renderer.clear();
-    if (this.gamepadsActive) {
-      if (this.gamepads.length === 1) {
-        this.rayInput.update();
-      } else {
-        this.handController1.update();
-        this.handController2.update();
-      }
-      this.sceneBuilder.update();
-      this.physicsHandler.updatePhysics();
-    } else {
-      this.initControllersAndBuildScene();
+    let session = frame.session;
+    // Queue a request for the next frame to keep the animation loop going.
+    session.requestAnimationFrame(this.onXRFrame);
+
+    // Get the XRDevice pose relative to the Reference Space we created
+    // earlier. The pose may not be available for a variety of reasons, so
+    // we'll exit the callback early if it comes back as null.
+    if (session.inputSources.length === 0) {
+      return;
     }
-    this.renderer.render(this.scene, this.camera);
-    this.session.requestAnimationFrame(this.onXRFrame);
+    // @ts-ignore
+    let pose = frame.getViewerPose(this.xrReferenceSpace);
+    if (!pose) {
+      return;
+    }
+    // Ensure we're rendering to the layer's backbuffer.
+    let layer = session.renderState.baseLayer;
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, layer.framebuffer);
+    // // @ts-ignore
+    // this.renderer.setFrameBuffer(layer.framebuffer);
+
+    // Loop through each of the views reported by the viewer pose.
+    let index = 0;
+    for (let view of pose.views) {
+      // Set the viewport required by this view.
+      let viewport = layer.getViewport(view);
+      this.gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
+
+      let viewMatrix = view.transform.inverse.matrix;
+      let camera = this.cameraVR.cameras[index];
+      camera.matrix.fromArray( viewMatrix ).getInverse( camera.matrix );
+      camera.projectionMatrix.fromArray( view.projectionMatrix );
+      camera.matrixWorldInverse.fromArray(viewMatrix);
+      // @ts-ignore
+      camera.viewport.set( viewport.x, viewport.y, viewport.width, viewport.height );
+
+      if ( index === 0 ) {
+        this.scene.matrix.fromArray(viewMatrix);
+        this.cameraVR.matrix.copy( camera.matrix );
+      }
+      index++;
+    }
+    if (!this.controllerL) {
+      this.initControllersAndBuildScene()
+    } else {
+      this.controllerL.update(frame, this.xrReferenceSpace);
+      this.controllerR.update(frame, this.xrReferenceSpace);
+      // this.scene.updateMatrixWorld(true);
+      this.sceneBuilder.update();
+      this.cameraVR.position.x = pose.transform.position.x;
+      this.cameraVR.position.y = pose.transform.position.y;
+      this.cameraVR.position.z = pose.transform.position.z;
+      this.cameraVR.quaternion.x = pose.transform.orientation.x;
+      this.cameraVR.quaternion.y = pose.transform.orientation.y;
+      this.cameraVR.quaternion.z = pose.transform.orientation.z;
+      this.cameraVR.quaternion.w = pose.transform.orientation.w;
+      this.cameraVR.updateProjectionMatrix();
+      this.physicsHandler.updatePhysics();
+      this.renderer.render(this.scene, this.cameraVR);
+    }
   };
 
   startPresenting() {
     console.log('Start presenting');
     this.renderer.vr.enabled = true;
     this.sessionActive = true;
-    console.log('Renderer - enable VR');
-    this.camera.aspect = window.innerWidth / window.innerHeight;
-    this.camera.updateProjectionMatrix();
-    console.log('Request present VR display');
-    this.display.requestPresent([{source: this.renderer.domElement}])
-    .then(() => {
-      this.session.requestAnimationFrame(this.onXRFrame);
-    });
+    this.session.requestAnimationFrame(this.onXRFrame);
+  };
+
+  onSelect = (event) => {
+    if (event.inputSource.handedness === 'right') {
+      this.controllerR.isPressed();
+    } else {
+      this.controllerL.isPressed();
+    }
   };
 
   endSession() {

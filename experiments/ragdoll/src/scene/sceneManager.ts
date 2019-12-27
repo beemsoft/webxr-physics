@@ -1,17 +1,9 @@
-import {
-  DirectionalLight,
-  HemisphereLight,
-  Mesh,
-  MeshBasicMaterial,
-  PerspectiveCamera,
-  PlaneGeometry,
-  Scene
-} from 'three';
-import {Body, Plane, Vec3} from 'cannon';
+import {DirectionalLight, HemisphereLight, PerspectiveCamera, Scene} from 'three';
 import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
 import {SceneManagerInterface} from '../../../shared/src/scene/SceneManagerInterface';
 import ConstraintManager from '../../../shared/src/physics/ConstraintManager';
 import BodyManager from './human/bodyManager';
+import {ControllerInterface} from '../../../shared/src/web-managers/ControllerInterface';
 
 const HEAD = "head";
 const LEFT_HAND = "leftHand";
@@ -37,40 +29,32 @@ export default class SceneManager implements SceneManagerInterface {
     this.scene.add(light);
     this.scene.add(new HemisphereLight(0x909090, 0x404040));
 
-    this.addFloor();
     this.bodyManager.createRagdoll();
     this.constraintManager.addPointerConstraintToBody(HEAD, this.bodyManager.headBody, 1);
     this.constraintManager.addPointerConstraintToBody(RIGHT_HAND, this.bodyManager.rightHand, 1);
     this.constraintManager.addPointerConstraintToBody(LEFT_HAND, this.bodyManager.leftHand, 1);
   }
 
-  addFloor() {
-    let mesh = new Mesh(new PlaneGeometry(28, 15, 1, 1), new MeshBasicMaterial());
-    let floorBody = new Body({ mass: 0});
-    floorBody.quaternion.setFromAxisAngle(new Vec3(1, 0, 0), Math.PI / -2);
-    floorBody.addShape(new Plane());
-    this.physicsHandler.addBody(floorBody);
-    this.physicsHandler.addMesh(mesh);
-  }
-
   update() {
     if (this.physicsHandler.rightHandController) {
       this.constraintManager.moveJointToPoint(RIGHT_HAND,
-        this.bodyManager.upperBody.position.x + (this.physicsHandler.rightHandController.position.x * this.bodyManager.scale) * 2,
-        ((this.physicsHandler.rightHandController.position.y - 1) * this.bodyManager.scale) * 2,
-        this.bodyManager.upperBody.position.z - (this.physicsHandler.rightHandController.position.z * this.bodyManager.scale) * 2);
+        (this.physicsHandler.rightHandController.position.x * this.bodyManager.scale) * 2,
+        ((this.physicsHandler.rightHandController.position.y) * this.bodyManager.scale) * 2,
+        -1 - (this.physicsHandler.rightHandController.position.z * this.bodyManager.scale) * 2);
 
       this.constraintManager.moveJointToPoint(LEFT_HAND,
-        (this.bodyManager.upperBody.position.x + this.physicsHandler.leftHandController.position.x * this.bodyManager.scale) * 2,
-        ((this.physicsHandler.leftHandController.position.y - 1) * this.bodyManager.scale) * 2,
-        this.bodyManager.upperBody.position.z - (this.physicsHandler.leftHandController.position.z * this.bodyManager.scale) * 2);
+        (this.physicsHandler.leftHandController.position.x * this.bodyManager.scale) * 2,
+        ((this.physicsHandler.leftHandController.position.y) * this.bodyManager.scale) * 2,
+        -1 - (this.physicsHandler.leftHandController.position.z * this.bodyManager.scale) * 2);
 
       this.constraintManager.moveJointToPoint(HEAD,
-        this.bodyManager.upperBody.position.x + (this.camera.position.x * this.bodyManager.scale),
+         (this.camera.position.x * this.bodyManager.scale),
         (this.camera.position.y * this.bodyManager.scale) * 2,
-        this.bodyManager.upperBody.position.z - (this.camera.position.z * this.bodyManager.scale));
+        -1 - (this.camera.position.z * this.bodyManager.scale));
     }
-
-    this.physicsHandler.updatePhysics();
   }
+
+  addLeftController(controller: ControllerInterface) {}
+
+  addRightController(controller: ControllerInterface) {}
 }

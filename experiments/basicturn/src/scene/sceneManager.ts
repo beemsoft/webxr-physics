@@ -1,5 +1,4 @@
 import {
-  CircleGeometry,
   DirectionalLight,
   HemisphereLight,
   Mesh,
@@ -15,6 +14,7 @@ import ConstraintManager from '../../../shared/src/physics/ConstraintManager';
 import BodyManager from './human/bodyManager';
 import DebugParams from './debug/DebugParams';
 import DanceManager from './dance/DanceManager';
+import {ControllerInterface} from '../../../shared/src/web-managers/ControllerInterface';
 
 const HEAD = "head";
 const LEFT_HAND = "leftHand";
@@ -44,7 +44,8 @@ export default class SceneManager implements SceneManagerInterface {
   private params: DebugParams;
   leftHandReleased: boolean;
   rightHandReleased: boolean;
-  private gamepads: Gamepad[];
+  private controllerL: ControllerInterface;
+  private controllerR: ControllerInterface;
   private isLeftHandHoldingLeftHand: boolean;
   private isLeftHandHoldingRightHand: boolean;
   private isRightHandHoldingLeftHand: boolean;
@@ -53,7 +54,7 @@ export default class SceneManager implements SceneManagerInterface {
   private leftFootDebugMesh: Mesh;
   private rightFootDebugMesh: Mesh;
 
-  build(camera: PerspectiveCamera, scene: Scene, maxAnisotropy: number, physicsHandler: PhysicsHandler, gamepads: Gamepad[]) {
+  build(camera: PerspectiveCamera, scene: Scene, maxAnisotropy: number, physicsHandler: PhysicsHandler) {
     this.scene = scene;
     this.camera = camera;
     this.physicsHandler = physicsHandler;
@@ -66,7 +67,6 @@ export default class SceneManager implements SceneManagerInterface {
     light.position.set(1, 10, -0.5);
     this.scene.add(light);
     this.scene.add(new HemisphereLight(0x909090, 0x404040));
-    this.gamepads = gamepads;
 
     this.addFloor();
 
@@ -104,6 +104,14 @@ export default class SceneManager implements SceneManagerInterface {
     // this.rightFootDebugMesh.position.x = this.danceManager.rightFootPosition.x;
     // this.rightFootDebugMesh.position.z = this.danceManager.rightFootPosition.z;
     // this.scene.add(this.rightFootDebugMesh);
+  }
+
+  addRightController(controller: ControllerInterface) {
+    this.controllerR = controller;
+  }
+
+  addLeftController(controller: ControllerInterface) {
+    this.controllerL = controller;
   }
 
   private addShoulderConstraints() {
@@ -152,7 +160,6 @@ export default class SceneManager implements SceneManagerInterface {
       this.handleHoldingHands();
       this.moveBodiesInDebugMode();
     }
-    this.physicsHandler.updatePhysics();
   }
 
   private moveBodiesInDebugMode() {
@@ -216,12 +223,12 @@ export default class SceneManager implements SceneManagerInterface {
       (this.camera.position.z * this.bodyManager1.scale) * 2);
     this.constraintManager.moveJointToPoint(RIGHT_HAND,
       (this.physicsHandler.rightHandController.position.x * this.bodyManager1.scale) * 2,
-      ((this.physicsHandler.rightHandController.position.y - 1) * this.bodyManager1.scale) * 2,
+      ((this.physicsHandler.rightHandController.position.y) * this.bodyManager1.scale) * 2,
       (this.physicsHandler.rightHandController.position.z * this.bodyManager1.scale) * 2);
 
     this.constraintManager.moveJointToPoint(LEFT_HAND,
       (this.physicsHandler.leftHandController.position.x * this.bodyManager1.scale) * 2,
-      ((this.physicsHandler.leftHandController.position.y - 1) * this.bodyManager1.scale) * 2,
+      ((this.physicsHandler.leftHandController.position.y) * this.bodyManager1.scale) * 2,
       (this.physicsHandler.leftHandController.position.z * this.bodyManager1.scale) * 2);
     this.constraintManager.moveJointToPoint(LEFT_FOOT,
       this.camera.position.x - FOOT_OFFSET * this.bodyManager1.scale,
@@ -234,28 +241,26 @@ export default class SceneManager implements SceneManagerInterface {
   }
 
   private handleReleasingHands() {
-    for (let i = 0; i < 2; i++) {
-      for (let j = 0; j < this.gamepads[i].buttons.length; ++j) {
-        if (this.gamepads[i].buttons[j].pressed) {
-          let isRightHand = this.gamepads[i].id.indexOf("Right") > -1;
-          let isLeftHand = this.gamepads[i].id.indexOf("Left") > -1;
-          if (!this.rightHandReleased) {
-            if (isRightHand && this.isRightHandHoldingRightHand) {
-              this.releaseRightHand();
-            }
-            if (isLeftHand && this.isRightHandHoldingLeftHand) {
-              this.releaseRightHand();
-            }
-          }
-          if (!this.leftHandReleased) {
-            if (isRightHand && this.isLeftHandHoldingRightHand) {
-              this.releaseLeftHand();
-            }
-            if (isLeftHand && this.isLeftHandHoldingLeftHand) {
-              this.releaseLeftHand();
-            }
-          }
-        }
+    let isRightHand = this.controllerR.wasPressed();
+    let isLeftHand = this.controllerL.wasPressed();
+    if (!this.rightHandReleased) {
+      if (isRightHand && this.isRightHandHoldingRightHand) {
+        this.releaseRightHand();
+        this.controllerR.reset();
+      }
+      if (isLeftHand && this.isRightHandHoldingLeftHand) {
+        this.releaseRightHand();
+        this.controllerL.reset();
+      }
+    }
+    if (!this.leftHandReleased) {
+      if (isRightHand && this.isLeftHandHoldingRightHand) {
+        this.releaseLeftHand();
+        this.controllerR.reset();
+      }
+      if (isLeftHand && this.isLeftHandHoldingLeftHand) {
+        this.releaseLeftHand();
+        this.controllerL.reset();
       }
     }
   }

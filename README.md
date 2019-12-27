@@ -17,16 +17,21 @@ Tested with Oculus Go headset + controller
 [Cannon.js]: http://www.cannonjs.org/
 [Resonance-audio]: https://github.com/resonance-audio/resonance-audio-web-sdk
 
-## Prerequisite
+## Demo
 
-In Chrome, enable WebVR in the chrome://flags page.
+https://www.beemsoft.nl/vr/
+
+This site is using a self-signed certificate.
 
 ## Usage
 
-    cd basic
+    cd experiments
     npm install
     npm start 
     
 ## Screenshot
 ![alt screenshot](https://github.com/beemsoft/webxr-physics/blob/master/img/webxr-physics.png)   
+
+Migration to WebXR API:
+https://01.org/blogs/darktears/2019/rendering-immersive-web-experiences-threejs-webxr
     

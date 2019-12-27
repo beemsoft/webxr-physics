@@ -16,7 +16,6 @@ module.exports = {
         backspin: './backspin/src/',
         ragdoll: './ragdoll/src/',
         basicturn: './basicturn/src/',
-        armmodeltest: './armmodeltest/src/',
         ragdollwithball: './ragdollwithball/src/'
     },
     module: {
