@@ -12,16 +12,13 @@ Spatial audio is added using the [Resonance Audio Web SDK][Resonance-audio].
 
 Tested with Oculus Quest headset + 2 controllers
 
-[WebVR-Physics]: https://github.com/beemsoft/webvr-physics
-[Ray-Input]: https://github.com/borismus/ray-input
+[WebXR-Physics]: https://github.com/beemsoft/webxr-physics
 [Cannon.js]: http://www.cannonjs.org/
 [Resonance-audio]: https://github.com/resonance-audio/resonance-audio-web-sdk
 
 ## Demo
 
-https://www.beemsoft.nl/vr/
-
-This site is using a self-signed certificate.
+https://www.techytax.nl/vr/
 
 ## Usage
 
