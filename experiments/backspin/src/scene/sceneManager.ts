@@ -112,12 +112,7 @@ export default class SceneManager implements SceneManagerInterface {
 
       body.addShape(new Sphere(0.05), relativePosition);
     }
-
-    let mesh = this.physicsHandler.addVisual(body, hand_material);
-    this.scene.add(mesh);
-    mesh.receiveShadow = false;
-    this.physicsHandler.addBody(body);
-
+    this.physicsHandler.addToScene(body, null, null, hand_material, this.scene);
     this.hand = body;
   }
 

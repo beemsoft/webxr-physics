@@ -15,14 +15,16 @@ import {
   Vector2,
   Vector3
 } from 'three';
-import {Body, Material, Plane, Sphere, Vec3} from 'cannon';
+// @ts-ignore
+import {Body, Box, Material, Plane, Quaternion, Sphere, Vec3} from 'cannon';
 import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
 import {SceneManagerInterface} from '../../../shared/src/scene/SceneManagerInterface';
 import ConstraintManager from '../../../shared/src/physics/ConstraintManager';
-import BodyManager from './human/bodyManager';
+import BodyManager from '../../../shared/src/scene/human/bodyManager';
 import DebugParams from './debug/DebugParams';
 import {ControllerInterface} from '../../../shared/src/web-managers/ControllerInterface';
-import Box = CANNON.Box;
+import BasketManager, {BasketSettings} from './items/BasketManager';
+import {GUI} from 'dat.gui';
 
 const HEAD = "head";
 const LEFT_HAND = "leftHand";
@@ -39,6 +41,7 @@ export default class SceneManager implements SceneManagerInterface {
   private physicsHandler: PhysicsHandler;
   constraintManager: ConstraintManager;
   private bodyManager1: BodyManager;
+  private basketManager: BasketManager;
   private params: DebugParams;
   leftHandReleased: boolean;
   rightHandReleased: boolean;
@@ -47,12 +50,13 @@ export default class SceneManager implements SceneManagerInterface {
   private loader: TextureLoader;
   private ball: Body;
   private ballMaterial = new Material("ball");
+  private gui: GUI;
 
   constructor() {
     this.loader = new TextureLoader();
   }
 
-  build(camera: PerspectiveCamera, scene: Scene, maxAnisotropy: number, physicsHandler: PhysicsHandler) {
+  build(camera: PerspectiveCamera, scene: Scene, maxAnisotropy: number, physicsHandler: PhysicsHandler)  {
     this.scene = scene;
     this.camera = camera;
     this.physicsHandler = physicsHandler;
@@ -60,43 +64,51 @@ export default class SceneManager implements SceneManagerInterface {
     this.bodyManager1 = new BodyManager(scene, physicsHandler);
     this.physicsHandler.dt = 1/80;
     this.physicsHandler.world.gravity.set(0, -9.8,0);
-    let light = new DirectionalLight(0xFFFFFF, 1);
-    light.position.set(1, 10, -0.5);
-    this.scene.add(camera);
-    this.scene.add(light);
-    this.scene.add(new HemisphereLight(0x909090, 0x404040));
+    this.basketManager = new BasketManager(scene, physicsHandler);
+    this.basketManager.loadSvg()
+      .then(() => {
+        let light = new DirectionalLight(0xFFFFFF, 1);
+        light.position.set(1, 10, -0.5);
+        this.scene.add(camera);
+        this.scene.add(light);
+        this.scene.add(new HemisphereLight(0x909090, 0x404040));
 
-    this.addFloor();
-    // this.addHall();
+        this.addFloor();
+        this.addHall();
+        this.addBall();
+        let basketSettings = new BasketSettings();
+        basketSettings.position = new Vec3(-12, 3, 0);
+        basketSettings.rotation = new Quaternion();
+        basketSettings.rotation.setFromAxisAngle(new Vec3(0, 1, 0), -Math.PI / 2);
+        this.basketManager.addBasket(basketSettings).then(() => {
+        });
+        let basketSettings2 = new BasketSettings();
+        basketSettings2.position = new Vec3(12, 3, 0);
+        basketSettings2.rotation = new Quaternion();
+        basketSettings2.rotation.setFromAxisAngle(new Vec3(0, 1, 0), Math.PI / 2);
+        this.basketManager.addBasket(basketSettings2);
 
-    this.addBall();
-    if (this.physicsHandler.rightHandController) {
-      this.bodyManager1.createRagdoll(new Vec3(this.camera.position.x, 0, this.camera.position.z), 1, 0x772277, false);
-    } else {
-      this.bodyManager1.createRagdoll(new Vec3(0, 0.01, 0), 1, 0x772277, false);
-    }
-    this.constraintManager.addPointerConstraintToBody(HEAD, this.bodyManager1.headBody, 1);
-    this.constraintManager.addPointerConstraintToBody(LEFT_HAND, this.bodyManager1.leftHand, 1);
-    this.constraintManager.addPointerConstraintToBody(RIGHT_HAND, this.bodyManager1.rightHand, 1);
-    this.constraintManager.addPointerConstraintToBody(LEFT_FOOT, this.bodyManager1.leftFoot, 1);
-    this.constraintManager.addPointerConstraintToBody(RIGHT_FOOT, this.bodyManager1.rightFoot, 1);
-    this.constraintManager.addConeTwistConstraint(LEFT_SHOULDER, this.bodyManager1.upperBody, this.bodyManager1.upperLeftArm
-      , this.bodyManager1.getLeftShoulderPivotA(), this.bodyManager1.getLeftShoulderPivotB());
-    this.constraintManager.addConeTwistConstraint(RIGHT_SHOULDER, this.bodyManager1.upperBody, this.bodyManager1.upperRightArm
-      , this.bodyManager1.getRightShoulderPivotA(), this.bodyManager1.getRightShoulderPivotB());
+        return this.bodyManager1.createRagdoll2(this.camera)
+          .then(() => {
+            this.constraintManager.addPointerConstraintToBody(HEAD, this.bodyManager1.headBody, 1);
+            this.constraintManager.addPointerConstraintToBody(LEFT_HAND, this.bodyManager1.leftHand, 1);
+            this.constraintManager.addPointerConstraintToBody(RIGHT_HAND, this.bodyManager1.rightHand, 1);
+            this.constraintManager.addPointerConstraintToBody(LEFT_FOOT, this.bodyManager1.leftFoot, 1);
+            this.constraintManager.addPointerConstraintToBody(RIGHT_FOOT, this.bodyManager1.rightFoot, 1);
+            this.constraintManager.addConeTwistConstraint(LEFT_SHOULDER, this.bodyManager1.upperBody, this.bodyManager1.upperLeftArm
+              , this.bodyManager1.getLeftShoulderPivotA(), this.bodyManager1.getLeftShoulderPivotB());
+            this.constraintManager.addConeTwistConstraint(RIGHT_SHOULDER, this.bodyManager1.upperBody, this.bodyManager1.upperRightArm
+              , this.bodyManager1.getRightShoulderPivotA(), this.bodyManager1.getRightShoulderPivotB());
 
-    this.params = new DebugParams(this, this.bodyManager1);
-    this.params.buildGui();
-  }
-
-  addFloor_org() {
-    let mesh = new Mesh(new PlaneGeometry(28, 15, 1, 1), new MeshBasicMaterial());
-    let floorBody = new Body({ mass: 0});
-    floorBody.quaternion.setFromAxisAngle(new Vec3(1, 0, 0), Math.PI / -2);
-    floorBody.addShape(new Plane());
-    this.physicsHandler.addBody(floorBody);
-    this.physicsHandler.addMesh(mesh);
-  }
+            this.params = new DebugParams(this, this.bodyManager1);
+            this.params.buildGui(this.bodyManager1)
+              .then(gui => {
+                this.gui = gui;
+                return true
+              });
+          });
+      })
+  };
 
   addWall(length, height, positionX, positionZ, rotationY) {
     let wallMesh = new Mesh(
@@ -156,9 +168,7 @@ export default class SceneManager implements SceneManagerInterface {
     let mesh = new Mesh(geometry, material);
     mesh.quaternion.setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2);
     mesh.receiveShadow = true;
-    // mesh.position.y -= 2;
     this.scene.add(mesh);
-    // this.floor = mesh;
     const groundMaterial = new Material("floor");
     let groundShape = new Plane();
     let groundBody = new Body({ mass: 0, material: groundMaterial });
@@ -211,7 +221,7 @@ export default class SceneManager implements SceneManagerInterface {
   update() {
     if (this.physicsHandler.rightHandController) {
       this.moveBody1();
-    } else {
+    } else if (this.params) {
       this.moveBodiesInDebugMode();
     }
     this.physicsHandler.updatePhysics();
@@ -232,11 +242,11 @@ export default class SceneManager implements SceneManagerInterface {
       this.params.rightHandZ);
     this.constraintManager.moveJointToPoint(LEFT_FOOT,
       this.params.headX - FOOT_OFFSET * this.bodyManager1.scale,
-      0,
+      -2,
       this.params.headZ);
     this.constraintManager.moveJointToPoint(RIGHT_FOOT,
       this.params.headX + FOOT_OFFSET * this.bodyManager1.scale,
-      0,
+      -2,
       this.params.headZ);
   }
 

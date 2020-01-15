@@ -51,8 +51,10 @@ export default class ConstraintManager {
   }
 
   moveJointToPoint(constraintName: string, x: number, y: number, z: number) {
-    this.namedConstraints[constraintName].bodyB.position.set(x, y, z);
-    this.namedConstraints[constraintName].update();
+    if (this.namedConstraints[constraintName]) {
+      this.namedConstraints[constraintName].bodyB.position.set(x, y, z);
+      this.namedConstraints[constraintName].update();
+    }
   }
 
   private createJointBody(): Body {

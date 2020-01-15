@@ -1,31 +1,3 @@
-/*
- * Copyright 2019 Hans Beemsterboer
- *
- * This file has been modified by Hans Beemsterboer to be used in
- * the webxr-physics project.
- *
- * Copyright (c) 2015 cannon.js Authors
- *
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use, copy,
- * modify, merge, publish, distribute, sublicense, and/or sell copies
- * of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
- * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
- * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-
 import {
   Body,
   ContactMaterial,
@@ -33,11 +5,12 @@ import {
   NaiveBroadphase,
   PointToPointConstraint,
   Quaternion,
+  Shape,
   Sphere,
   Vec3,
   World
 } from "cannon";
-import {Mesh, Object3D, Vector3} from "three";
+import {Material as Material2, Mesh, Object3D, Scene} from "three";
 import {BodyConverter} from '../util/BodyConverter';
 
 export default class PhysicsHandler {
@@ -52,6 +25,7 @@ export default class PhysicsHandler {
   public handMaterial = new Material("hand");
   public rightHandController: Body;
   public leftHandController: Body;
+  private bodyConverter = new BodyConverter();
 
   constructor() {
     this.dt = 1 / 60;
@@ -90,7 +64,7 @@ export default class PhysicsHandler {
   updatePhysics() {
     this.world.step(this.dt);
     for (let i = 0; i !== this.meshes.length; i++) {
-      if (this.meshes[i]) {
+      if (this.meshes[i] && this.bodies[i]) {
         this.meshes[i].position.x = this.bodies[i].position.x;
         this.meshes[i].position.y = this.bodies[i].position.y;
         this.meshes[i].position.z = this.bodies[i].position.z;
@@ -120,29 +94,49 @@ export default class PhysicsHandler {
     }
   }
 
-  addVisual(body, material): Object3D {
-    let mesh: Object3D;
+  addVisual(body, material): Promise<Object3D> {
     if(body instanceof Body){
-      mesh = BodyConverter.shape2mesh(body, material);
+      return this.bodyConverter.shape2mesh(body, material)
+        .then(mesh => {
+          mesh.position.x = body.position.x;
+          mesh.position.y = body.position.y;
+          mesh.position.z = body.position.z;
+          this.meshes.push(mesh);
+          return mesh;
+        });
     }
-    if(mesh) {
-      mesh.position.x = body.position.x;
-      mesh.position.y = body.position.y;
-      mesh.position.z = body.position.z;
-      this.meshes.push(mesh);
-    }
-    if (!mesh.position) {
-      console.log('ERROR: no position for mesh!');
-    }
-    return mesh;
   }
 
-  // Used for ray handler
-  addPointerConstraintToMesh(pos: Vector3, mesh: Mesh) {
-    let idx = this.meshes.indexOf(mesh);
-    if(idx !== -1){
-      this.addPointerConstraintToBody(pos.x,pos.y,pos.z,this.bodies[idx]);
+  addToScene(body: Body, shape: Shape, shapeOrientation: Quaternion, material: Material2, scene: Scene) {
+    if (shape != null) {
+      body.addShape(shape);
     }
+    this.world.addBody(body);
+    this.bodyConverter.shape2mesh(body, material)
+      .then(mesh => {
+        mesh.position.x = body.position.x;
+        mesh.position.y = body.position.y;
+        mesh.position.z = body.position.z;
+        if (shapeOrientation === null) {
+          mesh.quaternion.x = body.quaternion.x;
+          mesh.quaternion.y = body.quaternion.y;
+          mesh.quaternion.z = body.quaternion.z;
+          mesh.quaternion.w = body.quaternion.w;
+        } else {
+          mesh.quaternion.x = shapeOrientation.x;
+          mesh.quaternion.y = shapeOrientation.y;
+          mesh.quaternion.z = shapeOrientation.z;
+          mesh.quaternion.w = shapeOrientation.w;
+        }
+        this.bodies.push(body);
+        this.meshes.push(mesh);
+        scene.add(mesh);
+      });
+  }
+
+  addMeshToScene(body: Body, mesh: Mesh, scene: Scene) {
+    this.addBody(body);
+    scene.add(mesh);
   }
 
   addPointerConstraintToBody(x: number, y: number, z: number, body: Body) {

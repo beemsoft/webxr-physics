@@ -2,8 +2,9 @@ import {DirectionalLight, HemisphereLight, PerspectiveCamera, Scene} from 'three
 import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
 import {SceneManagerInterface} from '../../../shared/src/scene/SceneManagerInterface';
 import ConstraintManager from '../../../shared/src/physics/ConstraintManager';
-import BodyManager from './human/bodyManager';
 import {ControllerInterface} from '../../../shared/src/web-managers/ControllerInterface';
+import BodyManager from '../../../shared/src/scene/human/bodyManager';
+import {Vec3} from 'cannon';
 
 const HEAD = "head";
 const LEFT_HAND = "leftHand";
@@ -29,10 +30,12 @@ export default class SceneManager implements SceneManagerInterface {
     this.scene.add(light);
     this.scene.add(new HemisphereLight(0x909090, 0x404040));
 
-    this.bodyManager.createRagdoll();
-    this.constraintManager.addPointerConstraintToBody(HEAD, this.bodyManager.headBody, 1);
-    this.constraintManager.addPointerConstraintToBody(RIGHT_HAND, this.bodyManager.rightHand, 1);
-    this.constraintManager.addPointerConstraintToBody(LEFT_HAND, this.bodyManager.leftHand, 1);
+    this.bodyManager.createRagdoll(new Vec3(0, 0, 0), 1, 0x772277, true)
+      .then(() => {
+        this.constraintManager.addPointerConstraintToBody(HEAD, this.bodyManager.headBody, 1);
+        this.constraintManager.addPointerConstraintToBody(RIGHT_HAND, this.bodyManager.rightHand, 1);
+        this.constraintManager.addPointerConstraintToBody(LEFT_HAND, this.bodyManager.leftHand, 1);
+      });
   }
 
   update() {

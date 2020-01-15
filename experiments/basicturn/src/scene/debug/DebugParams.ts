@@ -1,7 +1,7 @@
 import SceneManager from '../sceneManager';
 import {GUI} from 'dat.gui';
-import BodyManager from '../human/bodyManager';
 import {Vec3} from 'cannon';
+import BodyManager from '../../../../shared/src/scene/human/bodyManager';
 
 export default class DebugParams {
   headX: number;

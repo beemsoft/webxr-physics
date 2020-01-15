@@ -15,6 +15,7 @@
     "@types/dat.gui": "^0.7.5",
     "@types/three": "=0.93.13",
     "cannon": "^0.6.2",
+    "canvg": "^3.0.2",
     "dat.gui": "^0.7.6",
     "eventemitter3": "^3.1.2",
     "plugin-typescript": "^8.0.0",
@@ -23,10 +24,7 @@
     "rgbcolor": "^1.0.1",
     "stackblur-canvas": "^2.2.0",
     "systemjs": "0.21.5",
-    "three": "^0.105",
-    "three-orbitcontrols-ts": "^0.1.2",
-    "three-trackballcontrols": "0.0.7",
-    "webxr-polyfill": "^1.0.13"
+    "three": "^0.105"
   },
   "devDependencies": {
     "@babel/plugin-transform-modules-commonjs": "^7.7.5",

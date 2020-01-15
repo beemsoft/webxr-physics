@@ -11,10 +11,10 @@ import {Body, Plane, Vec3} from 'cannon';
 import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
 import {SceneManagerInterface} from '../../../shared/src/scene/SceneManagerInterface';
 import ConstraintManager from '../../../shared/src/physics/ConstraintManager';
-import BodyManager from './human/bodyManager';
 import DebugParams from './debug/DebugParams';
 import DanceManager from './dance/DanceManager';
 import {ControllerInterface} from '../../../shared/src/web-managers/ControllerInterface';
+import BodyManager from '../../../shared/src/scene/human/bodyManager';
 
 const HEAD = "head";
 const LEFT_HAND = "leftHand";
@@ -33,7 +33,6 @@ const RIGHT_SHOULDER2 = "rightShoulder2";
 const FOOT_OFFSET = 0.25;
 const HAND_AUTO_HOLD_DISTANCE = 0.3;
 
-
 export default class SceneManager implements SceneManagerInterface {
   private scene: Scene;
   private camera: PerspectiveCamera;
@@ -51,8 +50,6 @@ export default class SceneManager implements SceneManagerInterface {
   private isRightHandHoldingLeftHand: boolean;
   private isRightHandHoldingRightHand: boolean;
   private danceManager: DanceManager;
-  private leftFootDebugMesh: Mesh;
-  private rightFootDebugMesh: Mesh;
 
   build(camera: PerspectiveCamera, scene: Scene, maxAnisotropy: number, physicsHandler: PhysicsHandler) {
     this.scene = scene;
@@ -67,43 +64,37 @@ export default class SceneManager implements SceneManagerInterface {
     light.position.set(1, 10, -0.5);
     this.scene.add(light);
     this.scene.add(new HemisphereLight(0x909090, 0x404040));
-
     this.addFloor();
 
     if (this.physicsHandler.rightHandController) {
       this.bodyManager1.createRagdoll(new Vec3(this.camera.position.x, 0, this.camera.position.z), 0.7, 0x772277, false);
       this.bodyManager2.createRagdoll(new Vec3(0, 0.01, this.camera.position.z - 1), 0.6, 0x345522, false);
     } else {
-      this.bodyManager1.createRagdoll(new Vec3(0, 0.01, 0), 1, 0x772277, false);
-      this.bodyManager2.createRagdoll(new Vec3(0, 0.01, 0.5), 0.8, 0x345522, false);
+      this.bodyManager1.createRagdoll(new Vec3(0, 0.01, 0), 1, 0x772277, false)
+        .then(() => {
+          this.constraintManager.addPointerConstraintToBody(HEAD, this.bodyManager1.headBody, 1);
+          this.constraintManager.addPointerConstraintToBody(LEFT_HAND, this.bodyManager1.leftHand, 1);
+          this.constraintManager.addPointerConstraintToBody(RIGHT_HAND, this.bodyManager1.rightHand, 1);
+          this.constraintManager.addPointerConstraintToBody(LEFT_FOOT, this.bodyManager1.leftFoot, 1);
+          this.constraintManager.addPointerConstraintToBody(RIGHT_FOOT, this.bodyManager1.rightFoot, 1);
+          this.constraintManager.addConeTwistConstraint(LEFT_SHOULDER, this.bodyManager1.upperBody, this.bodyManager1.upperLeftArm
+            , this.bodyManager1.getLeftShoulderPivotA(), this.bodyManager1.getLeftShoulderPivotB());
+          this.constraintManager.addConeTwistConstraint(RIGHT_SHOULDER, this.bodyManager1.upperBody, this.bodyManager1.upperRightArm
+            , this.bodyManager1.getRightShoulderPivotA(), this.bodyManager1.getRightShoulderPivotB());
+          this.bodyManager2.createRagdoll(new Vec3(0, 0.01, 0.5), 0.8, 0x345522, false)
+            .then(() => {
+              this.constraintManager.addPointerConstraintToBody(LEFT_FOOT2, this.bodyManager2.leftFoot, 1);
+              this.constraintManager.addPointerConstraintToBody(RIGHT_FOOT2, this.bodyManager2.rightFoot, 1);
+              this.constraintManager.addPointerConstraintToBody(HEAD2, this.bodyManager2.headBody, 1);
+              this.addShoulderConstraints();
+
+              this.params = new DebugParams(this, this.bodyManager1, this.bodyManager2);
+              this.params.buildGui();
+
+              this.danceManager = new DanceManager(this.bodyManager2);
+            });
+        });
     }
-    this.constraintManager.addPointerConstraintToBody(HEAD, this.bodyManager1.headBody, 1);
-    this.constraintManager.addPointerConstraintToBody(LEFT_HAND, this.bodyManager1.leftHand, 1);
-    this.constraintManager.addPointerConstraintToBody(RIGHT_HAND, this.bodyManager1.rightHand, 1);
-    this.constraintManager.addPointerConstraintToBody(LEFT_FOOT, this.bodyManager1.leftFoot, 1);
-    this.constraintManager.addPointerConstraintToBody(RIGHT_FOOT, this.bodyManager1.rightFoot, 1);
-    this.constraintManager.addPointerConstraintToBody(LEFT_FOOT2, this.bodyManager2.leftFoot, 1);
-    this.constraintManager.addPointerConstraintToBody(RIGHT_FOOT2, this.bodyManager2.rightFoot, 1);
-    this.constraintManager.addPointerConstraintToBody(HEAD2, this.bodyManager2.headBody, 1);
-    this.addShoulderConstraints();
-    this.constraintManager.addConeTwistConstraint(LEFT_SHOULDER, this.bodyManager1.upperBody, this.bodyManager1.upperLeftArm
-      , this.bodyManager1.getLeftShoulderPivotA(), this.bodyManager1.getLeftShoulderPivotB());
-    this.constraintManager.addConeTwistConstraint(RIGHT_SHOULDER, this.bodyManager1.upperBody, this.bodyManager1.upperRightArm
-      , this.bodyManager1.getRightShoulderPivotA(), this.bodyManager1.getRightShoulderPivotB());
-
-    this.params = new DebugParams(this, this.bodyManager1, this.bodyManager2);
-    this.params.buildGui();
-
-    this.danceManager = new DanceManager(this.bodyManager2);
-
-    // this.leftFootDebugMesh = new Mesh(new CircleGeometry(0.1));
-    // this.leftFootDebugMesh.position.x = this.danceManager.leftFootPosition.x;
-    // this.leftFootDebugMesh.position.z = this.danceManager.leftFootPosition.z;
-    // this.scene.add(this.leftFootDebugMesh);
-    // this.rightFootDebugMesh = new Mesh(new CircleGeometry(0.1));
-    // this.rightFootDebugMesh.position.x = this.danceManager.rightFootPosition.x;
-    // this.rightFootDebugMesh.position.z = this.danceManager.rightFootPosition.z;
-    // this.scene.add(this.rightFootDebugMesh);
   }
 
   addRightController(controller: ControllerInterface) {
@@ -145,18 +136,15 @@ export default class SceneManager implements SceneManagerInterface {
   }
 
   update() {
-    this.danceManager.handleBasicTurn();
-    // this.rightFootDebugMesh.position.x = this.danceManager.rightFootPosition.x;
-    // this.rightFootDebugMesh.position.z = this.danceManager.rightFootPosition.z;
-    // this.leftFootDebugMesh.position.x = this.danceManager.leftFootPosition.x;
-    // this.leftFootDebugMesh.position.z = this.danceManager.leftFootPosition.z;
-
+    if (this.danceManager) {
+      this.danceManager.handleBasicTurn();
+    }
     if (this.physicsHandler.rightHandController) {
       this.handleReleasingHands();
       this.handleHoldingHands();
       this.moveBody1();
       this.moveBody2();
-    } else {
+    } else if (this.params) {
       this.handleHoldingHands();
       this.moveBodiesInDebugMode();
     }

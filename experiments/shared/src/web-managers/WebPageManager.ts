@@ -1,7 +1,7 @@
 import {PerspectiveCamera, Scene, WebGLRenderer} from 'three';
-import TrackballControls from 'three-trackballcontrols';
 import {SceneManagerInterface} from '../scene/SceneManagerInterface';
 import PhysicsHandler from '../physics/physicsHandler';
+import "three/examples/js/controls/OrbitControls";
 
 export default class WebPageManager {
   private readonly camera: PerspectiveCamera;
@@ -9,7 +9,8 @@ export default class WebPageManager {
   private readonly scene: Scene;
   private sceneBuilder: SceneManagerInterface;
   private physicsHandler: PhysicsHandler;
-  private controls: TrackballControls;
+  // @ts-ignore
+  private controls: THREE.OrbitControls;
 
   constructor(sceneManager: SceneManagerInterface) {
     this.sceneBuilder = sceneManager;
@@ -36,7 +37,8 @@ export default class WebPageManager {
   };
 
   private addTrackBallControls() {
-    this.controls = new TrackballControls(this.camera, this.renderer.domElement);
+    // @ts-ignore
+    this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
   }
 
   private addOutputToPage = () => {

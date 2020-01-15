@@ -70,11 +70,14 @@ export default class HandController implements ControllerInterface {
       this.handBody.addShape(new Sphere(0.03), relativePosition);
     }
 
-    this.handMesh = this.physicsHandler.addVisual(this.handBody, hand_material);
-    if (isControllerVisible) {
-      scene.add(this.handMesh);
-      this.handMesh.receiveShadow = false;
-    }
+    this.physicsHandler.addVisual(this.handBody, hand_material)
+      .then(mesh => {
+        this.handMesh = mesh
+        if (isControllerVisible) {
+          scene.add(this.handMesh);
+          this.handMesh.receiveShadow = false;
+        }
+      });
     let isRightHand = this.inputSource.handedness === 'right';
     this.physicsHandler.addControllerBody(this.handBody, isRightHand);
   }

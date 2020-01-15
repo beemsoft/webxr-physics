@@ -1,6 +1,6 @@
 import {Vec3} from 'cannon';
 import {Math as Math2} from 'three';
-import BodyManager from '../human/bodyManager';
+import BodyManager from '../../../../shared/src/scene/human/bodyManager';
 
 enum DanceStates {
     BASIS,
