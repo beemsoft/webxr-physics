@@ -20,7 +20,7 @@ export default class BodyManager {
   pelvis: Body;
   public bodyParts = new Array<Body>();
 
-  scale = 1; // 0.6;
+  scale = 0.8; // 0.6;
   private color: number;
   private shouldersDistance: number;
   private upperBodyLength: number;
