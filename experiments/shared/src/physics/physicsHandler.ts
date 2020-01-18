@@ -96,7 +96,7 @@ export default class PhysicsHandler {
 
   addVisual(body, material): Promise<Object3D> {
     if(body instanceof Body){
-      return this.bodyConverter.shape2mesh(body, material)
+      return this.bodyConverter.shape2mesh(body, null, material)
         .then(mesh => {
           mesh.position.x = body.position.x;
           mesh.position.y = body.position.y;
@@ -112,31 +112,12 @@ export default class PhysicsHandler {
       body.addShape(shape);
     }
     this.world.addBody(body);
-    this.bodyConverter.shape2mesh(body, material)
+    this.bodyConverter.shape2mesh(body, shape, material)
       .then(mesh => {
-        mesh.position.x = body.position.x;
-        mesh.position.y = body.position.y;
-        mesh.position.z = body.position.z;
-        if (shapeOrientation === null) {
-          mesh.quaternion.x = body.quaternion.x;
-          mesh.quaternion.y = body.quaternion.y;
-          mesh.quaternion.z = body.quaternion.z;
-          mesh.quaternion.w = body.quaternion.w;
-        } else {
-          mesh.quaternion.x = shapeOrientation.x;
-          mesh.quaternion.y = shapeOrientation.y;
-          mesh.quaternion.z = shapeOrientation.z;
-          mesh.quaternion.w = shapeOrientation.w;
-        }
         this.bodies.push(body);
         this.meshes.push(mesh);
         scene.add(mesh);
       });
-  }
-
-  addMeshToScene(body: Body, mesh: Mesh, scene: Scene) {
-    this.addBody(body);
-    scene.add(mesh);
   }
 
   addPointerConstraintToBody(x: number, y: number, z: number, body: Body) {
@@ -149,21 +130,12 @@ export default class PhysicsHandler {
     // Apply anti-quaternion to vector to transform it into the local body coordinate system
     let antiRot = this.constrainedBody.quaternion.inverse();
     let pivot = new Quaternion(antiRot.x, antiRot.y, antiRot.z, antiRot.w).vmult(v1); // pivot is not in local body coordinates
-
-    // Move the cannon click marker particle to the click position
     this.jointBody.position.set(x,y,z);
-
-    // Create a new constraint
-    // The pivot for the jointBody is zero
     this.pointerConstraint = new PointToPointConstraint(this.constrainedBody, pivot, this.jointBody, new Vec3(0,0,0));
-
-    // Add the constraint to world
     this.world.addConstraint(this.pointerConstraint);
   }
 
-  // This function moves the transparent joint body to a new position in space
   moveJointToPoint(x: number, y: number, z: number) {
-    // Move the joint body to a new position
     this.jointBody.position.set(x,y,z);
     this.pointerConstraint.update();
   }

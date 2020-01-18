@@ -77,15 +77,15 @@ export default class SceneManager implements SceneManagerInterface {
         this.addHall();
         this.addBall();
         let basketSettings = new BasketSettings();
-        basketSettings.position = new Vec3(-12, 3, 0);
+        basketSettings.position = new Vec3(-13.5, 3, 0);
         basketSettings.rotation = new Quaternion();
-        basketSettings.rotation.setFromAxisAngle(new Vec3(0, 1, 0), -Math.PI / 2);
-        this.basketManager.addBasket(basketSettings).then(() => {
-        });
+        basketSettings.offsetRing = new Vec3( 0.8,-1.2, 0);
+        this.basketManager.addBasket(basketSettings);
         let basketSettings2 = new BasketSettings();
-        basketSettings2.position = new Vec3(12, 3, 0);
+        basketSettings2.position = new Vec3(13.5, 3, 0);
         basketSettings2.rotation = new Quaternion();
-        basketSettings2.rotation.setFromAxisAngle(new Vec3(0, 1, 0), Math.PI / 2);
+        basketSettings2.rotation.setFromAxisAngle(new Vec3(0, 1, 0), -Math.PI );
+        basketSettings2.offsetRing = new Vec3( -0.8, -1.2, 0);
         this.basketManager.addBasket(basketSettings2);
 
         return this.bodyManager1.createRagdoll2(this.camera)

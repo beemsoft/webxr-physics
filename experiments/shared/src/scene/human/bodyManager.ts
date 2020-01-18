@@ -47,7 +47,6 @@ export default class BodyManager {
   }
 
   addToScene(body: Body, shape: Shape, material: Material, scene: Scene) {
-    body.position.vadd(this.dollPosition, body.position);
     this.physicsHandler.addToScene(body, shape, null, material, scene);
     this.bodyParts.push(body);
   }

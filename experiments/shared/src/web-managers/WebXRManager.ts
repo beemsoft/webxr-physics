@@ -172,7 +172,6 @@ export default class WebXRManager {
     } else {
       this.controllerL.update(frame, this.xrReferenceSpace);
       this.controllerR.update(frame, this.xrReferenceSpace);
-      // this.scene.updateMatrixWorld(true);
       this.sceneBuilder.update();
       this.cameraVR.position.x = pose.transform.position.x;
       this.cameraVR.position.y = pose.transform.position.y;
@@ -189,7 +188,6 @@ export default class WebXRManager {
 
   startPresenting() {
     console.log('Start presenting');
-    this.renderer.vr.enabled = true;
     this.sessionActive = true;
     this.session.requestAnimationFrame(this.onXRFrame);
   };
@@ -205,6 +203,5 @@ export default class WebXRManager {
   endSession() {
     this.session.end();
     this.sessionActive = false;
-    this.renderer.vr.enabled = false;
   };
 }

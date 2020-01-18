@@ -39,10 +39,10 @@ export default class DebugParams {
       gui.add(this, 'headY', 0, 2, 0.1);
       gui.add(this, 'headZ', -4, 4, 0.1);
       gui.add(this, 'leftHandX', -4, 4, 0.1);
-      gui.add(this, 'leftHandY', 0, 2, 0.1);
+      gui.add(this, 'leftHandY', -2, 2, 0.1);
       gui.add(this, 'leftHandZ', -4, 4, 0.1);
       gui.add(this, 'rightHandX', -4, 4, 0.1);
-      gui.add(this, 'rightHandY', 0, 2, 0.1);
+      gui.add(this, 'rightHandY', -2, 2, 0.1);
       gui.add(this, 'rightHandZ', -4, 4, 0.1);
       return resolve(gui);
     });
