@@ -25,6 +25,7 @@ import DebugParams from './debug/DebugParams';
 import {ControllerInterface} from '../../../shared/src/web-managers/ControllerInterface';
 import BasketManager, {BasketSettings} from './items/BasketManager';
 import {GUI} from 'dat.gui';
+import {XRReferenceSpace, XRRigidTransform} from '../../../shared/src/WebXRDeviceAPI';
 
 const HEAD = "head";
 const LEFT_HAND = "leftHand";
@@ -51,6 +52,8 @@ export default class SceneManager implements SceneManagerInterface {
   private ball: Body;
   private ballMaterial = new Material("ball");
   private gui: GUI;
+  public xrReferenceSpace: XRReferenceSpace;
+  private currentBodyPosition = new Vec3();
 
   constructor() {
     this.loader = new TextureLoader();
@@ -88,7 +91,7 @@ export default class SceneManager implements SceneManagerInterface {
         basketSettings2.offsetRing = new Vec3( -0.8, -1.2, 0);
         this.basketManager.addBasket(basketSettings2);
 
-        return this.bodyManager1.createRagdoll2(this.camera)
+        return this.bodyManager1.createRagdollWithControl(this.camera)
           .then(() => {
             this.constraintManager.addPointerConstraintToBody(HEAD, this.bodyManager1.headBody, 1);
             this.constraintManager.addPointerConstraintToBody(LEFT_HAND, this.bodyManager1.leftHand, 1);
@@ -220,11 +223,38 @@ export default class SceneManager implements SceneManagerInterface {
 
   update() {
     if (this.physicsHandler.rightHandController) {
+      this.handleMovingTowardsTheBall();
       this.moveBody1();
     } else if (this.params) {
       this.moveBodiesInDebugMode();
     }
     this.physicsHandler.updatePhysics();
+  }
+
+  private handleMovingTowardsTheBall() {
+    let isLeftHand = this.controllerL.wasPressed();
+    if (isLeftHand) {
+      this.controllerL.reset();
+      this.moveTowardsTheBall();
+    }
+  }
+
+  public moveTowardsTheBall() {
+    console.log('move towards the ball!');
+    let direction = this.ball.position.vsub(this.bodyManager1.headBody.position).mult(0.2);
+    this.currentBodyPosition.vadd(direction, this.currentBodyPosition);
+    console.log("Body position: " + JSON.stringify(this.currentBodyPosition));
+    if (this.physicsHandler.rightHandController) {
+      // @ts-ignore
+      this.xrReferenceSpace = this.xrReferenceSpace.getOffsetReferenceSpace(new XRRigidTransform({x: -direction.x, y: 0, z: -direction.z}));
+    } else {
+      this.params.headX += direction.x;
+      this.params.headZ += direction.z;
+      this.params.leftHandX += direction.x;
+      this.params.leftHandZ += direction.z;
+      this.params.rightHandX += direction.x;
+      this.params.rightHandZ += direction.z;
+    }
   }
 
   private moveBodiesInDebugMode() {
@@ -242,28 +272,28 @@ export default class SceneManager implements SceneManagerInterface {
       this.params.rightHandZ);
     this.constraintManager.moveJointToPoint(LEFT_FOOT,
       this.params.headX - FOOT_OFFSET * this.bodyManager1.scale,
-      -2,
+      -1.9,
       this.params.headZ);
     this.constraintManager.moveJointToPoint(RIGHT_FOOT,
       this.params.headX + FOOT_OFFSET * this.bodyManager1.scale,
-      -2,
+      -1.9,
       this.params.headZ);
   }
 
   private moveBody1() {
     this.constraintManager.moveJointToPoint(HEAD,
-      (this.camera.position.x * this.bodyManager1.scale) * 2,
+      this.currentBodyPosition.x + (this.camera.position.x * this.bodyManager1.scale) * 2,
       ((this.camera.position.y) * this.bodyManager1.scale) * 2,
-      (this.camera.position.z * this.bodyManager1.scale) * 2);
+      this.currentBodyPosition.z + (this.camera.position.z * this.bodyManager1.scale) * 2);
     this.constraintManager.moveJointToPoint(RIGHT_HAND,
-      (this.physicsHandler.rightHandController.position.x * this.bodyManager1.scale) * 2,
+      this.currentBodyPosition.x + (this.physicsHandler.rightHandController.position.x * this.bodyManager1.scale) * 2,
       ((this.physicsHandler.rightHandController.position.y) * this.bodyManager1.scale) * 2,
-      (this.physicsHandler.rightHandController.position.z * this.bodyManager1.scale) * 2);
+      this.currentBodyPosition.z + (this.physicsHandler.rightHandController.position.z * this.bodyManager1.scale) * 2);
 
     this.constraintManager.moveJointToPoint(LEFT_HAND,
-      (this.physicsHandler.leftHandController.position.x * this.bodyManager1.scale) * 2,
+      this.currentBodyPosition.x + (this.physicsHandler.leftHandController.position.x * this.bodyManager1.scale) * 2,
       ((this.physicsHandler.leftHandController.position.y) * this.bodyManager1.scale) * 2,
-      (this.physicsHandler.leftHandController.position.z * this.bodyManager1.scale) * 2);
+      this.currentBodyPosition.z + (this.physicsHandler.leftHandController.position.z * this.bodyManager1.scale) * 2);
     this.constraintManager.moveJointToPoint(LEFT_FOOT,
       // (this.camera.position.x - FOOT_OFFSET) * this.bodyManager1.scale,
       this.bodyManager1.upperLeftArm.position.x,
@@ -286,6 +316,14 @@ export default class SceneManager implements SceneManagerInterface {
 
   addRightController(controller: ControllerInterface) {
     this.controllerR = controller;
+  }
+
+  setXrReferenceSpace(space: XRReferenceSpace) {
+    this.xrReferenceSpace = space;
+  }
+
+  getXrReferenceSpace(): XRReferenceSpace {
+    return this.xrReferenceSpace;
   }
 
 }

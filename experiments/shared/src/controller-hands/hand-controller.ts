@@ -1,4 +1,4 @@
-import {MeshBasicMaterial, Object3D, Scene, Vector2} from 'three';
+import {MeshBasicMaterial, Object3D, Scene, Vector2, Vector3} from 'three';
 import {Body, Sphere, Vec3} from "cannon";
 import {EventEmitter} from 'events';
 import {ControllerInterface} from '../web-managers/ControllerInterface';
@@ -11,8 +11,6 @@ export default class HandController implements ControllerInterface {
   private pointer: Vector2;
   private lastPointer: Vector2;
   private pointerNdc: Vector2;
-  private dragDistance: number;
-  private isDragging: boolean;
   private size: any;
   private wasPressed2: boolean;
   public controllerEventEmitter = new EventEmitter();
@@ -31,32 +29,22 @@ export default class HandController implements ControllerInterface {
   constructor(inputSource: XRInputSource, physicsHandler: PhysicsHandler) {
     this.inputSource = inputSource;
     this.physicsHandler = physicsHandler;
+    this.handBody = new Body({ mass: 0, material: physicsHandler.handMaterial });
+    let isRightHand = this.inputSource.handedness === 'right';
+    this.physicsHandler.addControllerBody(this.handBody, isRightHand);
     this.pointer = new Vector2();
     this.lastPointer = new Vector2();
     // Position of pointer in Normalized Device Coordinates (NDC).
     this.pointerNdc = new Vector2();
-    this.dragDistance = 0;
-    this.isDragging = false;
     console.log('Construct hand controller: ' + this.inputSource.handedness);
   }
 
-  addCameraAndControllerToScene(scene: Scene, isControllerVisible: Boolean): Promise<boolean> {
-    return new Promise( resolve => {
-      this.addFingerTips(scene, isControllerVisible);
-      resolve(true);
-    })
-  }
-
-  addFingerTips(scene: Scene, isControllerVisible: Boolean) {
+  addFingerTips(scene: Scene) {
     let hand_material = new MeshBasicMaterial({
       color: 0xFF3333,
     });
     const Ncols = 5;
     const angle = 360 / Ncols;
-    this.handBody = new Body({
-      mass: 0,
-      material: this.physicsHandler.handMaterial
-    });
     for(let i=0; i<Ncols; i++){
       let radians = this.toRadians(angle * i);
       let rowRadius = this.handSettings.handRadius;
@@ -72,14 +60,15 @@ export default class HandController implements ControllerInterface {
 
     this.physicsHandler.addVisual(this.handBody, hand_material)
       .then(mesh => {
-        this.handMesh = mesh
-        if (isControllerVisible) {
-          scene.add(this.handMesh);
-          this.handMesh.receiveShadow = false;
-        }
+        this.handMesh = mesh;
+        scene.add(this.handMesh);
+        this.handMesh.receiveShadow = false;
       });
-    let isRightHand = this.inputSource.handedness === 'right';
-    this.physicsHandler.addControllerBody(this.handBody, isRightHand);
+    this.physicsHandler.addBody(this.handBody);
+  }
+
+  makeVisible(scene: Scene) {
+    this.addFingerTips(scene);
   }
 
   getMesh(): Object3D {
@@ -102,10 +91,14 @@ export default class HandController implements ControllerInterface {
     this.wasPressed2 = false;
   }
 
+  move(direction: Vector3) {
+    this.handBody.position.x += direction.x;
+    this.handBody.position.y += direction.y;
+    this.handBody.position.z += direction.z;
+  }
+
   update(frame: XRFrameOfReference, refSpace: XRReferenceSpace) {
-    // @ts-ignore
     if (this.inputSource.gripSpace) {
-      // @ts-ignore
       let gripPose = frame.getPose(this.inputSource.gripSpace, refSpace);
       if (gripPose) {
         const orientation = gripPose.transform.orientation;

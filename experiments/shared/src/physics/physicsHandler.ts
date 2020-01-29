@@ -86,7 +86,6 @@ export default class PhysicsHandler {
   }
 
   addControllerBody(body: Body, isRightHand: Boolean) {
-    this.addBody(body);
     if (isRightHand) {
       this.rightHandController = body;
     } else {

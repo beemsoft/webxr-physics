@@ -1,12 +1,8 @@
-import {PerspectiveCamera, Scene, WebGLRenderer} from 'three';
 import WebXRManager from './web-managers/WebXRManager';
 import WebPageManager from './web-managers/WebPageManager';
 import {SceneManagerInterface} from './scene/SceneManagerInterface';
 
 let element: HTMLElement;
-let renderer: WebGLRenderer;
-let scene: Scene;
-let camera: PerspectiveCamera;
 
 export class VrInitializer {
   private readonly sceneBuilder: SceneManagerInterface;
@@ -30,23 +26,11 @@ export class VrInitializer {
     button.style.fontStyle = 'normal';
     button.style.textAlign = 'center';
     button.textContent = 'ENTER VR';
-
     button.addEventListener('click', () => {
-      new WebXRManager(renderer, camera, scene, this.sceneBuilder, true);
+      new WebXRManager(this.sceneBuilder);
     });
-
     element.appendChild(button);
-    console.log('3) Display VR button');
     return button;
-  }
-
-  initRenderer() {
-    scene = new Scene();
-    camera = new PerspectiveCamera();
-    renderer = new WebGLRenderer({alpha: true});
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.autoClear = false;
-    console.log('2) Initialized WebGL renderer')
   }
 
   public init() {
@@ -54,7 +38,6 @@ export class VrInitializer {
     navigator.xr.isSessionSupported('immersive-vr')
       .then(isSupported => {
         if (isSupported) {
-          this.initRenderer();
           this.addVrButton();
         } else {
           new WebPageManager(this.sceneBuilder);

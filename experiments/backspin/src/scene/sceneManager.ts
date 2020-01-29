@@ -8,13 +8,14 @@ import {
   Scene,
   SphereGeometry,
   TextureLoader,
-  Vector2
+  Vector2, Vector3
 } from 'three';
 import {Body, Material, Sphere, Vec3} from 'cannon';
 import {SceneManagerInterface} from '../../../shared/src/scene/SceneManagerInterface';
 import {TextMesh} from '../../../shared/src/text/TextMesh';
 import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
 import {ControllerInterface} from '../../../shared/src/web-managers/ControllerInterface';
+import {XRReferenceSpace} from '../../../shared/src/WebXRDeviceAPI';
 
 export default class SceneManager implements SceneManagerInterface {
   private scene: Scene;
@@ -129,8 +130,18 @@ export default class SceneManager implements SceneManagerInterface {
   }
 
   addLeftController(controller: ControllerInterface) {
+    controller.makeVisible(this.scene);
   }
 
   addRightController(controller: ControllerInterface) {
+    controller.makeVisible(this.scene);
+  }
+
+  setXrReferenceSpace(space: XRReferenceSpace): Vector3 {
+    throw new Error("Method not implemented.");
+  }
+
+  getXrReferenceSpace(): XRReferenceSpace {
+    return null;
   }
 }

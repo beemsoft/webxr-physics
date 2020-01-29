@@ -19,8 +19,7 @@ export default class BodyManager {
   upperBody: Body;
   pelvis: Body;
   public bodyParts = new Array<Body>();
-
-  scale = 0.8; // 0.6;
+  scale = 1;
   private color: number;
   private shouldersDistance: number;
   private upperBodyLength: number;
@@ -31,9 +30,9 @@ export default class BodyManager {
     this.physicsHandler = physicsHandler;
   }
 
-  createRagdoll2(camera: Camera): Promise<boolean> {
+  createRagdollWithControl(camera: Camera): Promise<boolean> {
     if (this.physicsHandler.rightHandController) {
-      return this.createRagdoll(new Vec3(camera.position.x, 0, camera.position.z), 1, 0x772277, false);
+      return this.createRagdoll(new Vec3(camera.position.x, 0, camera.position.z), 1.95/2.18, 0x772277, false);
     } else {
       return this.createRagdoll(new Vec3(0, 0, 0), 1, 0x772277, false);
     }

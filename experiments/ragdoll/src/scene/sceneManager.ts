@@ -1,16 +1,23 @@
-import {DirectionalLight, HemisphereLight, PerspectiveCamera, Scene} from 'three';
+import {DirectionalLight, HemisphereLight, PerspectiveCamera, Scene, Vector3} from 'three';
 import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
 import {SceneManagerInterface} from '../../../shared/src/scene/SceneManagerInterface';
 import ConstraintManager from '../../../shared/src/physics/ConstraintManager';
 import {ControllerInterface} from '../../../shared/src/web-managers/ControllerInterface';
 import BodyManager from '../../../shared/src/scene/human/bodyManager';
 import {Vec3} from 'cannon';
+import {XRReferenceSpace} from '../../../shared/src/WebXRDeviceAPI';
 
 const HEAD = "head";
 const LEFT_HAND = "leftHand";
 const RIGHT_HAND = "rightHand";
 
 export default class SceneManager implements SceneManagerInterface {
+  setXrReferenceSpace(space: XRReferenceSpace): Vector3 {
+    throw new Error("Method not implemented.");
+  }
+  getXrReferenceSpace(): XRReferenceSpace {
+    return null;
+  }
   private scene: Scene;
   private camera: PerspectiveCamera;
   private physicsHandler: PhysicsHandler;

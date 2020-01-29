@@ -5,7 +5,7 @@ import {
   Mesh,
   MeshNormalMaterial,
   PerspectiveCamera,
-  Scene
+  Scene, Vector3
 } from 'three';
 import {Body, Box, Material, Vec3} from 'cannon';
 import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
@@ -13,6 +13,7 @@ import {SceneManagerInterface} from '../../../shared/src/scene/SceneManagerInter
 import AudioHandler from '../audio/audioHandler';
 import {TextMesh} from '../../../shared/src/text/TextMesh';
 import {ControllerInterface} from '../../../shared/src/web-managers/ControllerInterface';
+import {XRReferenceSpace} from '../../../shared/src/WebXRDeviceAPI';
 
 export default class SceneManager implements SceneManagerInterface {
   private scene: Scene;
@@ -31,7 +32,6 @@ export default class SceneManager implements SceneManagerInterface {
   build(camera: PerspectiveCamera, scene: Scene, maxAnisotropy: number, physicsHandler: PhysicsHandler) {
     this.scene = scene;
     this.physicsHandler = physicsHandler;
-    console.log('Building Basic scene...');
     let light = new DirectionalLight(0xFFFFFF, 1);
     light.position.set(1, 10, -0.5);
     this.scene.add(light);
@@ -71,8 +71,18 @@ export default class SceneManager implements SceneManagerInterface {
   }
 
   addLeftController(controller: ControllerInterface) {
+    controller.makeVisible(this.scene);
   }
 
   addRightController(controller: ControllerInterface) {
+    controller.makeVisible(this.scene);
+  }
+
+  setXrReferenceSpace(space: XRReferenceSpace): Vector3 {
+    throw new Error("Method not implemented.");
+  }
+
+  getXrReferenceSpace(): XRReferenceSpace {
+    return null;
   }
 }

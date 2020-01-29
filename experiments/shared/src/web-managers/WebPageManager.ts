@@ -6,7 +6,7 @@ import "three/examples/js/controls/OrbitControls";
 export default class WebPageManager {
   private readonly camera: PerspectiveCamera;
   private renderer: WebGLRenderer;
-  private readonly scene: Scene;
+  private readonly scene: Scene = new Scene();
   private sceneBuilder: SceneManagerInterface;
   private physicsHandler: PhysicsHandler;
   // @ts-ignore
@@ -15,7 +15,6 @@ export default class WebPageManager {
   constructor(sceneManager: SceneManagerInterface) {
     this.sceneBuilder = sceneManager;
     this.physicsHandler = new PhysicsHandler();
-    this.scene = new Scene();
     this.camera = new PerspectiveCamera();
     this.camera.position.set(1, 1, 1);
     this.renderer = new WebGLRenderer({alpha: false});

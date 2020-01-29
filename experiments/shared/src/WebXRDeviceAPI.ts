@@ -1,6 +1,10 @@
+import {Quaternion, Vector3} from 'three';
+
 export interface XR extends EventTarget {
   requestDevice(): Promise<XRDevice>;
   ondevicechange?: Function;
+
+  requestSession(immersiveVr: string): Promise<XRSession>;
 }
 declare global  {
   interface Navigator {
@@ -23,6 +27,8 @@ export interface XRSessionCreationOptions {
   outputContext?: XRPresentationContext;
 }
 export interface XRSession extends EventTarget {
+  renderState: any;
+  inputSources: any;
   readonly device: XRDevice;
   readonly immersive: boolean;
   readonly outputContext: XRPresentationContext;
@@ -52,7 +58,7 @@ declare global  {
   }
 }
 export interface XRFrameRequestCallback {
-  (time: number, frame: XRFrame): void;
+  (time: number, frame: XRFrameOfReference): void;
 }
 
 export interface XRFrame {
@@ -85,10 +91,14 @@ export interface XRFrameOfReference extends XRCoordinateSystem {
   readonly bounds?: XRStageBounds;
   readonly emulatedHeight: number;
   onboundschange?: Function;
+  readonly session: XRSession;
 
   getInputPose(inputSource: XRInputSource, frame: XRFrameOfReference);
+  getViewerPose(frame: XRReferenceSpace);
+
+  getPose(gripSpace: any, refSpace: XRReferenceSpace): XRDevicePose;
 }
-declare enum XRReferenceSpaceType {
+export declare enum XRReferenceSpaceType {
   "viewer",
   "local",
   "local-floor",
@@ -97,6 +107,7 @@ declare enum XRReferenceSpaceType {
 }
 
 export interface XRReferenceSpace {
+  getOffsetReferenceSpace(xrRigidTransform: XRRigidTransform): XRReferenceSpace;
 }
 declare global  {
   interface Window {
@@ -120,10 +131,17 @@ declare global  {
     XRStageBoundsPoint: XRStageBoundsPoint;
   }
 }
+export interface XRRigidTransform {
+  readonly inverse: XRRigidTransform;
+  readonly matrix: Float32Array;
+  readonly orientation: Quaternion;
+  readonly position: Vector3;
+}
 export type XREye = 'left' | 'right';
 export interface XRView {
   readonly eye: XREye;
   readonly projectionMatrix: Float32Array;
+  readonly transform: XRRigidTransform;
 }
 declare global  {
   interface Window {
@@ -142,6 +160,7 @@ declare global  {
   }
 }
 export interface XRDevicePose {
+  transform: XRRigidTransform;
   readonly poseModelMatrix: Float32Array;
   getViewMatrix(view: XRView): Float32Array;
 }
@@ -154,6 +173,7 @@ export type XRHandedness = '' | 'left' | 'right';
 export type XRTargetRayMode = 'gazing' | 'pointing' | 'tapping';
 
 export interface XRInputSource {
+  gripSpace: any;
   readonly handedness: XRHandedness;
   readonly targetRayMode: XRTargetRayMode;
 }
@@ -178,9 +198,10 @@ export interface XRWebGLLayerInit {
   multiview: boolean;
   framebufferScaleFactor: number;
 }
+
 export interface XRWebGLLayer extends XRLayer {
-  constructor(session: XRSession, context: XRWebGLRenderingContext, layerInit?: XRWebGLLayer);
-  readonly context: XRWebGLRenderingContext;
+  constructor(session: XRSession, context: WebGLRenderingContext, layerInit?: XRWebGLLayer);
+  readonly context: WebGLRenderingContext;
   readonly antialias: boolean;
   readonly depth: boolean;
   readonly stencil: boolean;

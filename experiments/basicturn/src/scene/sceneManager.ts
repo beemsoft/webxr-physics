@@ -5,7 +5,7 @@ import {
   MeshBasicMaterial,
   PerspectiveCamera,
   PlaneGeometry,
-  Scene
+  Scene, Vector3
 } from 'three';
 import {Body, Plane, Vec3} from 'cannon';
 import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
@@ -15,6 +15,7 @@ import DebugParams from './debug/DebugParams';
 import DanceManager from './dance/DanceManager';
 import {ControllerInterface} from '../../../shared/src/web-managers/ControllerInterface';
 import BodyManager from '../../../shared/src/scene/human/bodyManager';
+import {XRReferenceSpace} from '../../../shared/src/WebXRDeviceAPI';
 
 const HEAD = "head";
 const LEFT_HAND = "leftHand";
@@ -281,5 +282,13 @@ export default class SceneManager implements SceneManagerInterface {
         this.isRightHandHoldingRightHand = true;
       }
     }
+  }
+
+  setXrReferenceSpace(space: XRReferenceSpace): Vector3 {
+    throw new Error("Method not implemented.");
+  }
+
+  getXrReferenceSpace(): XRReferenceSpace {
+    return null;
   }
 }
