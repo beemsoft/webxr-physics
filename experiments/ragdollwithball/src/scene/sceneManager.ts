@@ -1,31 +1,29 @@
 import {
   BackSide,
   BoxGeometry,
-  DirectionalLight,
-  HemisphereLight,
   Mesh,
   MeshBasicMaterial,
-  MeshPhongMaterial,
   PerspectiveCamera,
   PlaneGeometry,
   RepeatWrapping,
   Scene,
   SphereGeometry,
   TextureLoader,
-  Vector2,
   Vector3
 } from 'three';
 // @ts-ignore
-import {Body, Box, Material, Plane, Quaternion, Sphere, Vec3} from 'cannon';
+import {Body, Box, Plane, Quaternion, Vec3} from 'cannon';
 import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
-import {SceneManagerInterface} from '../../../shared/src/scene/SceneManagerInterface';
 import ConstraintManager from '../../../shared/src/physics/ConstraintManager';
 import BodyManager from '../../../shared/src/scene/human/bodyManager';
 import DebugParams from './debug/DebugParams';
 import {ControllerInterface} from '../../../shared/src/web-managers/ControllerInterface';
-import BasketManager, {BasketSettings} from './items/BasketManager';
+import BasketHelper, {BasketSettings} from './items/BasketHelper';
 import {GUI} from 'dat.gui';
 import {XRReferenceSpace, XRRigidTransform} from '../../../shared/src/WebXRDeviceAPI';
+import {SceneHelper} from '../../../shared/src/scene/SceneHelper';
+import {BasketballHelper} from '../../../shared/src/scene/sport/BasketballHelper';
+import {SceneWithTeleporting} from '../../../shared/src/scene/SceneWithTeleporting';
 
 const HEAD = "head";
 const LEFT_HAND = "leftHand";
@@ -36,49 +34,44 @@ const LEFT_SHOULDER = "leftShoulder";
 const RIGHT_SHOULDER = "rightShoulder";
 const FOOT_OFFSET = 0.25;
 
-export default class SceneManager implements SceneManagerInterface {
+export default class SceneManager implements SceneWithTeleporting {
   private scene: Scene;
+  private sceneHelper: SceneHelper;
   private camera: PerspectiveCamera;
   private physicsHandler: PhysicsHandler;
   constraintManager: ConstraintManager;
   private bodyManager1: BodyManager;
-  private basketManager: BasketManager;
+  private basketManager: BasketHelper;
+  private basketballHelper: BasketballHelper;
   private params: DebugParams;
   leftHandReleased: boolean;
   rightHandReleased: boolean;
   private controllerL: ControllerInterface;
   private controllerR: ControllerInterface;
-  private loader: TextureLoader;
+  private loader: TextureLoader = new TextureLoader();
   private ball: Body;
-  private ballMaterial = new Material("ball");
   private gui: GUI;
   public xrReferenceSpace: XRReferenceSpace;
   private currentBodyPosition = new Vec3();
 
-  constructor() {
-    this.loader = new TextureLoader();
-  }
-
   build(camera: PerspectiveCamera, scene: Scene, maxAnisotropy: number, physicsHandler: PhysicsHandler)  {
     this.scene = scene;
+    this.sceneHelper = new SceneHelper(scene);
     this.camera = camera;
     this.physicsHandler = physicsHandler;
     this.constraintManager = new ConstraintManager(physicsHandler);
     this.bodyManager1 = new BodyManager(scene, physicsHandler);
     this.physicsHandler.dt = 1/80;
     this.physicsHandler.world.gravity.set(0, -9.8,0);
-    this.basketManager = new BasketManager(scene, physicsHandler);
+    this.basketManager = new BasketHelper(scene, physicsHandler);
+    this.basketballHelper = new BasketballHelper(scene, physicsHandler);
     this.basketManager.loadSvg()
       .then(() => {
-        let light = new DirectionalLight(0xFFFFFF, 1);
-        light.position.set(1, 10, -0.5);
         this.scene.add(camera);
-        this.scene.add(light);
-        this.scene.add(new HemisphereLight(0x909090, 0x404040));
-
+        this.sceneHelper.addLight();
         this.addFloor();
         this.addHall();
-        this.addBall();
+        this.ball = this.basketballHelper.addBall();
         let basketSettings = new BasketSettings();
         basketSettings.position = new Vec3(-13.5, 3, 0);
         basketSettings.rotation = new Quaternion();
@@ -90,7 +83,6 @@ export default class SceneManager implements SceneManagerInterface {
         basketSettings2.rotation.setFromAxisAngle(new Vec3(0, 1, 0), -Math.PI );
         basketSettings2.offsetRing = new Vec3( -0.8, -1.2, 0);
         this.basketManager.addBasket(basketSettings2);
-
         return this.bodyManager1.createRagdollWithControl(this.camera)
           .then(() => {
             this.constraintManager.addPointerConstraintToBody(HEAD, this.bodyManager1.headBody, 1);
@@ -116,40 +108,31 @@ export default class SceneManager implements SceneManagerInterface {
   addWall(length, height, positionX, positionZ, rotationY) {
     let wallMesh = new Mesh(
       new BoxGeometry( length, height, 0.1, 8, 8, 1 ),
-      new MeshBasicMaterial( {
-        color: 0xffffff,
-        transparent: true,
-        opacity: 0
-      } )
+      new MeshBasicMaterial( { color: 0xffffff, transparent: true, wireframe: true, opacity: 0.1 } )
     );
-
+    wallMesh.quaternion.setFromAxisAngle(new Vector3(0, 1, 0), rotationY);
+    this.scene.add(wallMesh);
     this.physicsHandler.addMesh(wallMesh);
-
     let wallShape = new Box(new Vec3(length, height, 0.1));
-
-    let wall = new Body({
-      mass: 0
-    });
+    let wall = new Body({ mass: 0 });
     wall.addShape(wallShape);
     wall.position.x = positionX;
     wall.position.z = positionZ;
     wall.quaternion.setFromAxisAngle(new Vec3(0, 1, 0), rotationY);
-
     this.physicsHandler.addBody(wall);
   }
 
   addHall() {
-
+    let texture = this.loader.load('/textures/basketball/equirectangular_court.jpg');
     let sphere = new Mesh(
-      new SphereGeometry(10, 32, 32),
+      new SphereGeometry(16, 32, 32),
       new MeshBasicMaterial({
-        map: this.loader.load('/textures/basketball/equirectangular_court.jpg'),
-        side: BackSide
+        map: texture,
+        side: BackSide,
       })
     );
-    sphere.scale.x = 2;
+    sphere.rotateY(-Math.PI/5.5);
     this.scene.add(sphere);
-
     this.addWall(28, 20, 0, 7.5, 0);
     this.addWall(28, 20, 0, -7.5, 0);
     this.addWall(15, 20, 14, 0, Math.PI / 2);
@@ -159,66 +142,22 @@ export default class SceneManager implements SceneManagerInterface {
   addFloor() {
     let geometry = new PlaneGeometry(28, 15, 1, 1);
     let texture = this.loader.load('/textures/basketball-court-tiles-396756-free-texture-wall-pine-construction-tile.jpg', function (texture) {
-
       texture.wrapS = texture.wrapT = RepeatWrapping;
       texture.offset.set(0, 0);
       texture.repeat.set(5, 5);
-
     });
-    let material = new MeshBasicMaterial({
-      map: texture
-    });
+    let material = new MeshBasicMaterial({ map: texture });
     let mesh = new Mesh(geometry, material);
     mesh.quaternion.setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2);
     mesh.receiveShadow = true;
     this.scene.add(mesh);
-    const groundMaterial = new Material("floor");
     let groundShape = new Plane();
-    let groundBody = new Body({ mass: 0, material: groundMaterial });
+    let groundBody = new Body({ mass: 0, material: this.physicsHandler.groundMaterial });
     groundBody.addShape(groundShape);
-    groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0),-Math.PI/2);
+    groundBody.quaternion.setFromAxisAngle(new Vec3(1,0,0),-Math.PI/2);
     groundBody.position.y -= 2;
     this.physicsHandler.addBody(groundBody);
     this.physicsHandler.addMesh(mesh);
-    this.physicsHandler.addContactMaterial(this.ballMaterial, groundMaterial, 0.001, 0.1);
-  }
-
-  addBall(){
-    const scale = 1;
-    const ballRadius = 0.17 * scale;
-
-    let ballSphere = new SphereGeometry( ballRadius, 16, 16 );
-    let ballMaterial = new MeshPhongMaterial({
-      map: this.loader.load('/textures/ball.png'),
-      normalMap: this.loader.load('/textures/ball_normal.png'),
-      shininess: 20,
-      reflectivity: 2,
-      normalScale: new Vector2(0.5, 0.5)
-    });
-
-    let ballMesh = new Mesh(ballSphere, ballMaterial);
-    ballMesh.castShadow = true;
-
-    this.physicsHandler.addMesh(ballMesh);
-
-    let damping = 0.01;
-    let mass = 0.1; // 0.6237;
-    let sphereShape = new Sphere(ballRadius);
-    let ball = new Body({
-      mass: mass,
-      material: this.ballMaterial
-    });
-
-    ball.addShape(sphereShape);
-    ball.linearDamping = damping;
-
-    ball.position.set(0,5,0);
-
-    this.physicsHandler.addBody(ball);
-
-    this.ball = ball;
-    this.scene.add(ballMesh);
-    this.physicsHandler.addContactMaterial(this.ballMaterial, this.physicsHandler.handMaterial, 0.001, 0.1);
   }
 
   update() {
@@ -232,9 +171,12 @@ export default class SceneManager implements SceneManagerInterface {
   }
 
   private handleMovingTowardsTheBall() {
-    let isLeftHand = this.controllerL.wasPressed();
-    if (isLeftHand) {
+    if (this.controllerL.wasPressed()) {
       this.controllerL.reset();
+      this.moveTowardsTheBall();
+    }
+    if (this.controllerR.wasPressed()) {
+      this.controllerR.reset();
       this.moveTowardsTheBall();
     }
   }

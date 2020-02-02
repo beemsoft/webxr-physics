@@ -32,6 +32,7 @@ export default class WebXRManager {
         this.session.requestReferenceSpace('local')
           .then(space => {
             this.xrReferenceSpace = space;
+            // @ts-ignore
             this.sceneBuilder.setXrReferenceSpace(space);
           }, error => {
             console.log(error.message);
@@ -71,7 +72,9 @@ export default class WebXRManager {
       this.controllerL = new HandController(inputSourceL, this.physicsHandler);
       this.controllerR = new HandController(inputSourceR, this.physicsHandler);
       this.sceneBuilder.build(this.cameraManager.cameraVR, this.scene, this.renderer.capabilities.getMaxAnisotropy(), this.physicsHandler);
+      // @ts-ignore
       this.sceneBuilder.addLeftController(this.controllerL);
+      // @ts-ignore
       this.sceneBuilder.addRightController(this.controllerR);
     }
   }
@@ -81,6 +84,7 @@ export default class WebXRManager {
     let session = frame.session;
     session.requestAnimationFrame(this.onXRFrame);
     if (session.inputSources.length === 0) return;
+    // @ts-ignore
     let pose = frame.getViewerPose(this.sceneBuilder.getXrReferenceSpace());
     if (!pose) return;
     let layer = session.renderState.baseLayer;

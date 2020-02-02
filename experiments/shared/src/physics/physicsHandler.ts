@@ -23,6 +23,7 @@ export default class PhysicsHandler {
   constraintDown: boolean;
   private constrainedBody: Body;
   public handMaterial = new Material("hand");
+  public groundMaterial = new Material("floor");
   public rightHandController: Body;
   public leftHandController: Body;
   private bodyConverter = new BodyConverter();

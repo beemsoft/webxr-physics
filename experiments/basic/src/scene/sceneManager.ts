@@ -5,17 +5,18 @@ import {
   Mesh,
   MeshNormalMaterial,
   PerspectiveCamera,
-  Scene, Vector3
+  Scene,
+  Vector3
 } from 'three';
 import {Body, Box, Material, Vec3} from 'cannon';
 import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
-import {SceneManagerInterface} from '../../../shared/src/scene/SceneManagerInterface';
 import AudioHandler from '../audio/audioHandler';
 import {TextMesh} from '../../../shared/src/text/TextMesh';
 import {ControllerInterface} from '../../../shared/src/web-managers/ControllerInterface';
 import {XRReferenceSpace} from '../../../shared/src/WebXRDeviceAPI';
+import {SceneWithControllers} from '../../../shared/src/scene/SceneWithControllers';
 
-export default class SceneManager implements SceneManagerInterface {
+export default class SceneManager implements SceneWithControllers {
   private scene: Scene;
   private physicsHandler: PhysicsHandler;
   protected cube: Mesh;

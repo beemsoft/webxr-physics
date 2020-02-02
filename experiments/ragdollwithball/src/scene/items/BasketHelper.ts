@@ -20,7 +20,7 @@ export class BasketSettings {
   offsetRing: Vec3;
 }
 
-export default class BasketManager {
+export default class BasketHelper {
   private scene: Scene;
   private physicsHandler: PhysicsHandler;
   private APP = {

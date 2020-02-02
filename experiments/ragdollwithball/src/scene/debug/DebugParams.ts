@@ -27,6 +27,10 @@ export default class DebugParams {
     this.sceneManager.moveTowardsTheBall();
   }
 
+  pressRightHand() {
+    this.sceneManager.moveTowardsTheBall();
+  }
+
   buildGui(bodyManager: BodyManager): Promise<GUI> {
     return new Promise(resolve => {
       let gui = new GUI();
@@ -49,6 +53,7 @@ export default class DebugParams {
       gui.add(this, 'rightHandY', -2, 2, 0.1);
       gui.add(this, 'rightHandZ', -4, 4, 0.1);
       gui.add(this, 'pressLeftHand');
+      gui.add(this, 'pressRightHand');
       return resolve(gui);
     });
   }

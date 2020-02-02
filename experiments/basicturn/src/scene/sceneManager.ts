@@ -5,17 +5,16 @@ import {
   MeshBasicMaterial,
   PerspectiveCamera,
   PlaneGeometry,
-  Scene, Vector3
+  Scene
 } from 'three';
 import {Body, Plane, Vec3} from 'cannon';
 import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
-import {SceneManagerInterface} from '../../../shared/src/scene/SceneManagerInterface';
 import ConstraintManager from '../../../shared/src/physics/ConstraintManager';
 import DebugParams from './debug/DebugParams';
 import DanceManager from './dance/DanceManager';
 import {ControllerInterface} from '../../../shared/src/web-managers/ControllerInterface';
 import BodyManager from '../../../shared/src/scene/human/bodyManager';
-import {XRReferenceSpace} from '../../../shared/src/WebXRDeviceAPI';
+import {SceneWithControllers} from '../../../shared/src/scene/SceneWithControllers';
 
 const HEAD = "head";
 const LEFT_HAND = "leftHand";
@@ -34,7 +33,7 @@ const RIGHT_SHOULDER2 = "rightShoulder2";
 const FOOT_OFFSET = 0.25;
 const HAND_AUTO_HOLD_DISTANCE = 0.3;
 
-export default class SceneManager implements SceneManagerInterface {
+export default class SceneManager implements SceneWithControllers {
   private scene: Scene;
   private camera: PerspectiveCamera;
   private physicsHandler: PhysicsHandler;
@@ -73,6 +72,7 @@ export default class SceneManager implements SceneManagerInterface {
     } else {
       this.bodyManager1.createRagdoll(new Vec3(0, 0.01, 0), 1, 0x772277, false)
         .then(() => {
+          this.bodyManager1.moveBody(new Vec3(0, 0, -1));
           this.constraintManager.addPointerConstraintToBody(HEAD, this.bodyManager1.headBody, 1);
           this.constraintManager.addPointerConstraintToBody(LEFT_HAND, this.bodyManager1.leftHand, 1);
           this.constraintManager.addPointerConstraintToBody(RIGHT_HAND, this.bodyManager1.rightHand, 1);
@@ -118,6 +118,7 @@ export default class SceneManager implements SceneManagerInterface {
     let floorBody = new Body({ mass: 0});
     floorBody.quaternion.setFromAxisAngle(new Vec3(1, 0, 0), Math.PI / -2);
     floorBody.addShape(new Plane());
+    floorBody.position.y -= 2;
     this.physicsHandler.addBody(floorBody);
     this.physicsHandler.addMesh(mesh);
   }
@@ -166,19 +167,19 @@ export default class SceneManager implements SceneManagerInterface {
       this.params.rightHandZ);
     this.constraintManager.moveJointToPoint(LEFT_FOOT,
       this.params.headX - FOOT_OFFSET * this.bodyManager1.scale,
-      0,
+      -1.9,
       this.params.headZ);
     this.constraintManager.moveJointToPoint(RIGHT_FOOT,
       this.params.headX + FOOT_OFFSET * this.bodyManager1.scale,
-      0,
+      -1.9,
       this.params.headZ);
     this.constraintManager.moveJointToPoint(LEFT_FOOT2,
       this.danceManager.leftFootPosition.x,
-      0,
+      -1.9,
       this.danceManager.leftFootPosition.z);
     this.constraintManager.moveJointToPoint(RIGHT_FOOT2,
       this.danceManager.rightFootPosition.x,
-      0,
+      -1.9,
       this.danceManager.rightFootPosition.z);
 
     this.constraintManager.moveJointToPoint(HEAD2,
@@ -282,13 +283,5 @@ export default class SceneManager implements SceneManagerInterface {
         this.isRightHandHoldingRightHand = true;
       }
     }
-  }
-
-  setXrReferenceSpace(space: XRReferenceSpace): Vector3 {
-    throw new Error("Method not implemented.");
-  }
-
-  getXrReferenceSpace(): XRReferenceSpace {
-    return null;
   }
 }

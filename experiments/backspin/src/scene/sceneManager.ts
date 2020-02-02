@@ -1,6 +1,4 @@
 import {
-  DirectionalLight,
-  HemisphereLight,
   Mesh,
   MeshBasicMaterial,
   MeshPhongMaterial,
@@ -8,54 +6,38 @@ import {
   Scene,
   SphereGeometry,
   TextureLoader,
-  Vector2, Vector3
+  Vector2
 } from 'three';
 import {Body, Material, Sphere, Vec3} from 'cannon';
-import {SceneManagerInterface} from '../../../shared/src/scene/SceneManagerInterface';
-import {TextMesh} from '../../../shared/src/text/TextMesh';
 import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
 import {ControllerInterface} from '../../../shared/src/web-managers/ControllerInterface';
-import {XRReferenceSpace} from '../../../shared/src/WebXRDeviceAPI';
+import {SceneHelper} from '../../../shared/src/scene/SceneHelper';
+import {SceneWithControllers} from '../../../shared/src/scene/SceneWithControllers';
 
-export default class SceneManager implements SceneManagerInterface {
+export default class SceneManager implements SceneWithControllers {
   private scene: Scene;
+  private sceneHelper: SceneHelper;
   private physicsHandler: PhysicsHandler;
-  private loader: TextureLoader;
+  private loader: TextureLoader = new TextureLoader();
   private ball: Body;
   private ballMaterial: Material;
   private hand: Body;
-  private handSettings = {
-    handRadius: .15,
-  };
-
-  constructor() {
-    this.loader = new TextureLoader();
-  }
+  private handSettings = { handRadius: .15 };
 
   build(camera: PerspectiveCamera, scene: Scene, maxAnisotropy: number, physicsHandler: PhysicsHandler) {
     this.scene = scene;
+    this.sceneHelper = new SceneHelper(scene);
     this.physicsHandler = physicsHandler;
     this.physicsHandler.dt = 1/180;
     this.physicsHandler.world.gravity.set(0, -9.8,0);
-    this.addLight();
+    this.sceneHelper.addLight();
     this.addBall();
-    let text = new TextMesh( maxAnisotropy, 1024, 512 );
-    scene.add( text.mesh );
-    text.mesh.position.set(0, 1, -2);
-    text.set('Catch the ball and throw it!');
-  }
-
-  addLight() {
-    let light = new DirectionalLight(0xFFFFFF, 1);
-    light.position.set(1, 10, -0.5);
-    this.scene.add(light);
-    this.scene.add(new HemisphereLight(0x909090, 0x404040));
+    this.sceneHelper.addMessage('Catch the ball and throw it!', maxAnisotropy);
   }
 
   addBall(){
     const scale = 1;
     const ballRadius = 0.17 * scale;
-
     let ballSphere = new SphereGeometry( ballRadius, 16, 16 );
     let ballMaterial = new MeshPhongMaterial({
       map: this.loader.load('/textures/ball.png'),
@@ -64,28 +46,18 @@ export default class SceneManager implements SceneManagerInterface {
       reflectivity: 2,
       normalScale: new Vector2(0.5, 0.5)
     });
-
     let ballMesh = new Mesh(ballSphere, ballMaterial);
     ballMesh.castShadow = true;
-
     this.physicsHandler.addMesh(ballMesh);
-
     let damping = 0.01;
-    let mass = 0.1; // 0.6237;
+    let mass = 0.6237;
     let sphereShape = new Sphere(ballRadius);
     this.ballMaterial = new Material("ball");
-    let ball = new Body({
-      mass: mass,
-      material: this.ballMaterial
-    });
-
+    let ball = new Body({ mass: mass, material: this.ballMaterial });
     ball.addShape(sphereShape);
     ball.linearDamping = damping;
-
     ball.position.set(0,5,0);
-
     this.physicsHandler.addBody(ball);
-
     this.ball = ball;
     this.scene.add(ballMesh);
     this.physicsHandler.addContactMaterial(this.ballMaterial, this.physicsHandler.handMaterial, 0.001, 0.1);
@@ -135,13 +107,5 @@ export default class SceneManager implements SceneManagerInterface {
 
   addRightController(controller: ControllerInterface) {
     controller.makeVisible(this.scene);
-  }
-
-  setXrReferenceSpace(space: XRReferenceSpace): Vector3 {
-    throw new Error("Method not implemented.");
-  }
-
-  getXrReferenceSpace(): XRReferenceSpace {
-    return null;
   }
 }
