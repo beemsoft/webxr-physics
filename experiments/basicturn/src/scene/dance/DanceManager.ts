@@ -1,5 +1,5 @@
 import {Vec3} from 'cannon';
-import {Math as Math2} from 'three';
+import {MathUtils} from 'three';
 import BodyManager from '../../../../shared/src/scene/human/bodyManager';
 
 enum DanceStates {
@@ -25,7 +25,7 @@ export default class DanceManager {
     this.bodyManager = bodyManager;
     this.footOffset = bodyManager.scale * 0.2;
     let angleRadian1 = this.bodyManager.upperBody.quaternion.toAxisAngle(new Vec3(0,1,0))[1];
-    this.previousAngleDegree1 = Math2.radToDeg(angleRadian1);
+    this.previousAngleDegree1 = MathUtils.radToDeg(angleRadian1);
     this.leftFootPosition = new Vec3(this.bodyManager.pelvis.position.x - this.footOffset, 0, this.bodyManager.pelvis.position.z);
     this.rightFootPosition = new Vec3(this.bodyManager.pelvis.position.x + this.footOffset, 0, this.bodyManager.pelvis.position.z);
   }
@@ -33,8 +33,8 @@ export default class DanceManager {
   handleBasicTurn() {
     let angleRadian1 = this.bodyManager.upperBody.quaternion.toAxisAngle(new Vec3(0,1,0))[1];
     let angleRadian2 = this.bodyManager.pelvis.quaternion.toAxisAngle(new Vec3(0,1,0))[1];
-    let angleDegree1 = Math2.radToDeg(angleRadian1);
-    let angleDegree2 = Math2.radToDeg(angleRadian2);
+    let angleDegree1 = MathUtils.radToDeg(angleRadian1);
+    let angleDegree2 = MathUtils.radToDeg(angleRadian2);
     this.upperBodyTurnDegree = angleDegree1;
 
     if (this.upperBodyTurnDegree % 180 < 10 || this.upperBodyTurnDegree % 180 > 170) {
