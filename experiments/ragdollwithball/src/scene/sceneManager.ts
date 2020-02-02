@@ -88,8 +88,6 @@ export default class SceneManager implements SceneWithTeleporting {
             this.constraintManager.addPointerConstraintToBody(HEAD, this.bodyManager1.headBody, 1);
             this.constraintManager.addPointerConstraintToBody(LEFT_HAND, this.bodyManager1.leftHand, 1);
             this.constraintManager.addPointerConstraintToBody(RIGHT_HAND, this.bodyManager1.rightHand, 1);
-            this.constraintManager.addPointerConstraintToBody(LEFT_FOOT, this.bodyManager1.leftFoot, 1);
-            this.constraintManager.addPointerConstraintToBody(RIGHT_FOOT, this.bodyManager1.rightFoot, 1);
             this.constraintManager.addConeTwistConstraint(LEFT_SHOULDER, this.bodyManager1.upperBody, this.bodyManager1.upperLeftArm
               , this.bodyManager1.getLeftShoulderPivotA(), this.bodyManager1.getLeftShoulderPivotB());
             this.constraintManager.addConeTwistConstraint(RIGHT_SHOULDER, this.bodyManager1.upperBody, this.bodyManager1.upperRightArm
@@ -177,8 +175,15 @@ export default class SceneManager implements SceneWithTeleporting {
     }
     if (this.controllerR.wasPressed()) {
       this.controllerR.reset();
-      this.moveTowardsTheBall();
+      this.rotateBody();
     }
+  }
+
+  public rotateBody() {
+    let currentRotation = this.bodyManager1.upperBody.quaternion.toAxisAngle(new Vec3(0, 1, 0))[1];
+    let newRotation = currentRotation + Math.PI / 2;
+    this.bodyManager1.upperBody.quaternion.setFromAxisAngle(new Vec3(0, 1, 0), currentRotation + newRotation);
+    this.bodyManager1.pelvis.quaternion.setFromAxisAngle(new Vec3(0, 1, 0), currentRotation + newRotation);
   }
 
   public moveTowardsTheBall() {

@@ -186,7 +186,7 @@ export default class SceneManager implements SceneWithControllers {
       this.bodyManager2.headInitialPosition.x,
       this.bodyManager2.headInitialPosition.y,
       this.bodyManager2.headInitialPosition.z);
-    this.bodyManager2.upperBody.quaternion.setFromAxisAngle(new Vec3(0, 1, 0), this.params.rotationPelvis2);
+    this.bodyManager2.upperBody.quaternion.setFromAxisAngle(new Vec3(0, 1, 0), this.params.rotationUpperBody);
     this.constraintManager.namedConstraints[RIGHT_SHOULDER2].update();
     this.constraintManager.namedConstraints[LEFT_SHOULDER2].update();
   }

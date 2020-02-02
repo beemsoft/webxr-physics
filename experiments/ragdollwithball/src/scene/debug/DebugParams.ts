@@ -12,7 +12,6 @@ export default class DebugParams {
   rightHandX: number;
   rightHandY: number;
   rightHandZ: number;
-  rotationPelvis2: number;
 
   private sceneManager: SceneManager;
   private bodyManager: BodyManager;
@@ -28,7 +27,7 @@ export default class DebugParams {
   }
 
   pressRightHand() {
-    this.sceneManager.moveTowardsTheBall();
+    this.sceneManager.rotateBody();
   }
 
   buildGui(bodyManager: BodyManager): Promise<GUI> {

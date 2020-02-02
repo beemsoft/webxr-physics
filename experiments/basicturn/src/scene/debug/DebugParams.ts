@@ -13,7 +13,7 @@ export default class DebugParams {
   rightHandX: number;
   rightHandY: number;
   rightHandZ: number;
-  rotationPelvis2: number;
+  rotationUpperBody: number;
 
   private sceneManager: SceneManager;
   private bodyManager: BodyManager;
@@ -46,7 +46,7 @@ export default class DebugParams {
     this.rightHandX = this.bodyManager.rightHand.position.x;
     this.rightHandY = this.bodyManager.rightHand.position.y;
     this.rightHandZ = this.bodyManager.rightHand.position.z;
-    this.rotationPelvis2 = this.bodyManager2.upperBody.quaternion.toAxisAngle(new Vec3(0,1,0))[1];
+    this.rotationUpperBody = this.bodyManager2.upperBody.quaternion.toAxisAngle(new Vec3(0,1,0))[1];
     gui.add(this, 'headX', -4, 4, 0.1);
     gui.add(this, 'headY', 0, 2, 0.1);
     gui.add(this, 'headZ', -4, 4, 0.1);
@@ -56,7 +56,7 @@ export default class DebugParams {
     gui.add(this, 'rightHandX', -4, 4, 0.1);
     gui.add(this, 'rightHandY', 0, 2, 0.1);
     gui.add(this, 'rightHandZ', -4, 4, 0.1);
-    gui.add(this, 'rotationPelvis2', -2 * Math.PI, 2 * Math.PI, 0.01);
+    gui.add(this, 'rotationUpperBody', -2 * Math.PI, 2 * Math.PI, 0.01);
     gui.add(this, 'releaseRightHand');
     gui.add(this, 'releaseLeftHand');
     return gui;
