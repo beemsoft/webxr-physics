@@ -162,10 +162,20 @@ export default class SceneManager implements SceneWithTeleporting {
     if (this.physicsHandler.rightHandController) {
       this.handleMovingTowardsTheBall();
       this.moveBody1();
+      this.handleHoldingTheBall();
     } else if (this.params) {
       this.moveBodiesInDebugMode();
     }
     this.physicsHandler.updatePhysics();
+  }
+
+  private handleHoldingTheBall() {
+    if (this.bodyManager1.leftHand.position.distanceTo(this.ball.position) < 0.2 &&
+      this.bodyManager1.rightHand.position.distanceTo(this.ball.position) < 0.2) {
+      this.ball.position.y = this.bodyManager1.leftHand.position.y;
+      this.ball.position.x = this.bodyManager1.leftHand.position.x + 0.18;
+      this.ball.position.y = this.bodyManager1.leftHand.position.y;
+    }
   }
 
   private handleMovingTowardsTheBall() {
