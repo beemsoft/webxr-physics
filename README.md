@@ -12,7 +12,7 @@ Spatial audio is added using the [Resonance Audio Web SDK][Resonance-audio].
 
 Tested with Oculus Quest headset + 2 controllers
 
-[WebXR-Physics]: https://github.com/beemsoft/webxr-physics
+[WebVR-Physics]: https://github.com/beemsoft/webvr-physics
 [Cannon.js]: http://www.cannonjs.org/
 [Resonance-audio]: https://github.com/resonance-audio/resonance-audio-web-sdk
 
@@ -29,6 +29,3 @@ https://www.techytax.org/vr/
 ## Screenshot
 ![alt screenshot](https://github.com/beemsoft/webxr-physics/blob/master/img/webxr-physics.png)   
 
-Migration to WebXR API:
-https://01.org/blogs/darktears/2019/rendering-immersive-web-experiences-threejs-webxr
-    
