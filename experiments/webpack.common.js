@@ -16,7 +16,8 @@ module.exports = {
         backspin: './backspin/src/',
         ragdoll: './ragdoll/src/',
         basicturn: './basicturn/src/',
-        ragdollwithball: './ragdollwithball/src/'
+        ragdollwithball: './ragdollwithball/src/',
+        basketball: './basketball/src/'
     },
     module: {
         rules: [

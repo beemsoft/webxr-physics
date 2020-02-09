@@ -15,7 +15,6 @@ import {
 import {Body, Box, Plane, Quaternion, Vec3} from 'cannon';
 import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
 import ConstraintManager from '../../../shared/src/physics/ConstraintManager';
-import BodyManager from '../../../shared/src/scene/human/bodyManager';
 import DebugParams from './debug/DebugParams';
 import {ControllerInterface} from '../../../shared/src/web-managers/ControllerInterface';
 import BasketHelper, {BasketSettings} from './items/BasketHelper';
@@ -24,15 +23,10 @@ import {XRReferenceSpace, XRRigidTransform} from '../../../shared/src/WebXRDevic
 import {SceneHelper} from '../../../shared/src/scene/SceneHelper';
 import {BasketballHelper} from '../../../shared/src/scene/sport/BasketballHelper';
 import {SceneWithTeleporting} from '../../../shared/src/scene/SceneWithTeleporting';
+import SimpleHandManager from '../../../shared/src/controller-hands/SimpleHandManager';
 
-const HEAD = "head";
 const LEFT_HAND = "leftHand";
 const RIGHT_HAND = "rightHand";
-const LEFT_FOOT = "leftFoot";
-const RIGHT_FOOT = "rightFoot";
-const LEFT_SHOULDER = "leftShoulder";
-const RIGHT_SHOULDER = "rightShoulder";
-const FOOT_OFFSET = 0.25;
 
 export default class SceneManager implements SceneWithTeleporting {
   private scene: Scene;
@@ -40,12 +34,11 @@ export default class SceneManager implements SceneWithTeleporting {
   private camera: PerspectiveCamera;
   private physicsHandler: PhysicsHandler;
   constraintManager: ConstraintManager;
-  private bodyManager1: BodyManager;
+  private simpleHandManager: SimpleHandManager;
   private basketManager: BasketHelper;
   private basketballHelper: BasketballHelper;
   private params: DebugParams;
-  leftHandReleased: boolean;
-  rightHandReleased: boolean;
+  isHoldingTheBall: boolean;
   private controllerL: ControllerInterface;
   private controllerR: ControllerInterface;
   private loader: TextureLoader = new TextureLoader();
@@ -60,9 +53,9 @@ export default class SceneManager implements SceneWithTeleporting {
     this.camera = camera;
     this.physicsHandler = physicsHandler;
     this.constraintManager = new ConstraintManager(physicsHandler);
-    this.bodyManager1 = new BodyManager(scene, physicsHandler);
+    this.simpleHandManager = new SimpleHandManager(scene, physicsHandler);
     this.physicsHandler.dt = 1/80;
-    this.physicsHandler.world.gravity.set(0, -9.8,0);
+    this.physicsHandler.world.gravity.set(0, -5,0);
     this.basketManager = new BasketHelper(scene, physicsHandler);
     this.basketballHelper = new BasketballHelper(scene, physicsHandler);
     this.basketManager.loadSvg()
@@ -75,28 +68,22 @@ export default class SceneManager implements SceneWithTeleporting {
         let basketSettings = new BasketSettings();
         basketSettings.position = new Vec3(-13.5, 3, 0);
         basketSettings.rotation = new Quaternion();
+        basketSettings.angle = 0;
         basketSettings.offsetRing = new Vec3( 0.8,-1.2, 0);
         this.basketManager.addBasket(basketSettings);
         let basketSettings2 = new BasketSettings();
         basketSettings2.position = new Vec3(13.5, 3, 0);
         basketSettings2.rotation = new Quaternion();
+        basketSettings2.angle = -Math.PI;
         basketSettings2.rotation.setFromAxisAngle(new Vec3(0, 1, 0), -Math.PI );
         basketSettings2.offsetRing = new Vec3( -0.8, -1.2, 0);
         this.basketManager.addBasket(basketSettings2);
-        return this.bodyManager1.createRagdollWithControl(this.camera)
+        return this.simpleHandManager.createSimpleHands(this.camera)
           .then(() => {
-            this.constraintManager.addPointerConstraintToBody(HEAD, this.bodyManager1.headBody, 1);
-            this.constraintManager.addPointerConstraintToBody(LEFT_HAND, this.bodyManager1.leftHand, 1);
-            this.constraintManager.addPointerConstraintToBody(RIGHT_HAND, this.bodyManager1.rightHand, 1);
-            this.constraintManager.addPointerConstraintToBody(LEFT_FOOT, this.bodyManager1.leftFoot, 1);
-            this.constraintManager.addPointerConstraintToBody(RIGHT_FOOT, this.bodyManager1.rightFoot, 1);
-            this.constraintManager.addConeTwistConstraint(LEFT_SHOULDER, this.bodyManager1.upperBody, this.bodyManager1.upperLeftArm
-              , this.bodyManager1.getLeftShoulderPivotA(), this.bodyManager1.getLeftShoulderPivotB());
-            this.constraintManager.addConeTwistConstraint(RIGHT_SHOULDER, this.bodyManager1.upperBody, this.bodyManager1.upperRightArm
-              , this.bodyManager1.getRightShoulderPivotA(), this.bodyManager1.getRightShoulderPivotB());
-
-            this.params = new DebugParams(this, this.bodyManager1);
-            this.params.buildGui(this.bodyManager1)
+            this.constraintManager.addPointerConstraintToBody(LEFT_HAND, this.simpleHandManager.leftHand, 1);
+            this.constraintManager.addPointerConstraintToBody(RIGHT_HAND, this.simpleHandManager.rightHand, 1);
+            this.params = new DebugParams(this, this.simpleHandManager);
+            this.params.buildGui(this.simpleHandManager)
               .then(gui => {
                 this.gui = gui;
                 return true
@@ -172,45 +159,54 @@ export default class SceneManager implements SceneWithTeleporting {
   }
 
   private handleHoldingTheBall() {
-    if (this.bodyManager1.leftHand.position.distanceTo(this.ball.position) < 1 &&
-      this.bodyManager1.rightHand.position.distanceTo(this.ball.position) < 1) {
+    if (!this.controllerR.wasPressed() && this.simpleHandManager.leftHand.position.distanceTo(this.ball.position) < 1 &&
+      this.simpleHandManager.rightHand.position.distanceTo(this.ball.position) < 1) {
       this.ball.velocity = new Vec3();
       this.ball.angularVelocity = new Vec3();
-      this.ball.position.y = this.bodyManager1.leftHand.position.y;
-      this.ball.position.x = this.bodyManager1.leftHand.position.x + 0.18;
-      this.ball.position.y = this.bodyManager1.leftHand.position.y;
+      this.ball.position.y = this.simpleHandManager.leftHand.position.y;
+      this.ball.position.x = this.simpleHandManager.leftHand.position.x;
+      this.ball.position.z = this.simpleHandManager.leftHand.position.z - 0.23;
+      this.isHoldingTheBall = true;
     }
   }
 
   private handleMovingTowardsTheBall() {
     if (this.controllerL.wasPressed()) {
       this.controllerL.reset();
-      this.moveTowardsTheBall();
+      if (!this.isHoldingTheBall) {
+        this.moveTowardsTheBall();
+      } else {
+        this.moveToBasket();
+      }
     }
     if (this.controllerR.wasPressed()) {
-      this.controllerR.reset();
-      this.rotateBody();
+      if (this.simpleHandManager.leftHand.position.distanceTo(this.ball.position) > 1 &&
+        this.simpleHandManager.rightHand.position.distanceTo(this.ball.position) > 1) {
+        this.controllerR.reset();
+        this.isHoldingTheBall = false;
+      }
     }
-  }
-
-  public rotateBody() {
-    let currentRotation = this.bodyManager1.upperBody.quaternion.toAxisAngle(new Vec3(0, 1, 0))[1];
-    let newRotation = currentRotation + Math.PI / 2;
-    this.bodyManager1.upperBody.quaternion.setFromAxisAngle(new Vec3(0, 1, 0), currentRotation + newRotation);
-    this.bodyManager1.pelvis.quaternion.setFromAxisAngle(new Vec3(0, 1, 0), currentRotation + newRotation);
   }
 
   public moveTowardsTheBall() {
-    console.log('move towards the ball!');
-    let direction = this.ball.position.vsub(this.bodyManager1.headBody.position).mult(0.2);
+    let direction = this.ball.position.vsub(new Vec3(this.camera.position.x, this.camera.position.y, this.camera.position.z)).mult(0.2);
+    this.moveInDirection(direction);
+  }
+
+  public moveToBasket() {
+    let direction = new Vec3(-9, 0, 0).vsub(new Vec3(this.camera.position.x, this.camera.position.y, this.camera.position.z));
+    this.moveInDirection(direction);
+    this.ball.position.vadd(direction, this.ball.position);
+    this.ball.velocity = new Vec3();
+    this.ball.angularVelocity = new Vec3();
+  }
+
+  private moveInDirection(direction: Vec3) {
     this.currentBodyPosition.vadd(direction, this.currentBodyPosition);
-    console.log("Body position: " + JSON.stringify(this.currentBodyPosition));
     if (this.physicsHandler.rightHandController) {
       // @ts-ignore
       this.xrReferenceSpace = this.xrReferenceSpace.getOffsetReferenceSpace(new XRRigidTransform({x: -direction.x, y: 0, z: -direction.z}));
     } else {
-      this.params.headX += direction.x;
-      this.params.headZ += direction.z;
       this.params.leftHandX += direction.x;
       this.params.leftHandZ += direction.z;
       this.params.rightHandX += direction.x;
@@ -219,10 +215,6 @@ export default class SceneManager implements SceneWithTeleporting {
   }
 
   private moveBodiesInDebugMode() {
-    this.constraintManager.moveJointToPoint(HEAD,
-      this.params.headX,
-      this.params.headY,
-      this.params.headZ);
     this.constraintManager.moveJointToPoint(LEFT_HAND,
       this.params.leftHandX,
       this.params.leftHandY,
@@ -231,44 +223,18 @@ export default class SceneManager implements SceneWithTeleporting {
       this.params.rightHandX,
       this.params.rightHandY,
       this.params.rightHandZ);
-    this.constraintManager.moveJointToPoint(LEFT_FOOT,
-      this.params.headX - FOOT_OFFSET * this.bodyManager1.scale,
-      -1.9,
-      this.params.headZ);
-    this.constraintManager.moveJointToPoint(RIGHT_FOOT,
-      this.params.headX + FOOT_OFFSET * this.bodyManager1.scale,
-      -1.9,
-      this.params.headZ);
   }
 
   private moveBody1() {
-    this.constraintManager.moveJointToPoint(HEAD,
-      this.currentBodyPosition.x + (this.camera.position.x * this.bodyManager1.scale) * 2,
-      ((this.camera.position.y) * this.bodyManager1.scale) * 2,
-      this.currentBodyPosition.z + (this.camera.position.z * this.bodyManager1.scale) * 2);
     this.constraintManager.moveJointToPoint(RIGHT_HAND,
-      this.currentBodyPosition.x + (this.physicsHandler.rightHandController.position.x * this.bodyManager1.scale) * 2,
-      ((this.physicsHandler.rightHandController.position.y) * this.bodyManager1.scale) * 2,
-      this.currentBodyPosition.z + (this.physicsHandler.rightHandController.position.z * this.bodyManager1.scale) * 2);
+      this.currentBodyPosition.x + (this.physicsHandler.rightHandController.position.x * this.simpleHandManager.scale) * 3,
+      ((this.physicsHandler.rightHandController.position.y) * this.simpleHandManager.scale) * 3,
+      this.currentBodyPosition.z + (this.physicsHandler.rightHandController.position.z * this.simpleHandManager.scale) * 3);
 
     this.constraintManager.moveJointToPoint(LEFT_HAND,
-      this.currentBodyPosition.x + (this.physicsHandler.leftHandController.position.x * this.bodyManager1.scale) * 2,
-      ((this.physicsHandler.leftHandController.position.y) * this.bodyManager1.scale) * 2,
-      this.currentBodyPosition.z + (this.physicsHandler.leftHandController.position.z * this.bodyManager1.scale) * 2);
-    this.constraintManager.moveJointToPoint(LEFT_FOOT,
-      // (this.camera.position.x - FOOT_OFFSET) * this.bodyManager1.scale,
-      this.bodyManager1.upperLeftArm.position.x,
-      this.camera.position.y -1.5,
-      this.bodyManager1.upperLeftArm.position.z
-      // this.camera.position.z * this.bodyManager1.scale
-    );
-    this.constraintManager.moveJointToPoint(RIGHT_FOOT,
-      // (this.camera.position.x + FOOT_OFFSET) * this.bodyManager1.scale,
-      this.bodyManager1.upperRightArm.position.x,
-      this.camera.position.y -1.5,
-      this.bodyManager1.upperRightArm.position.z
-      // this.camera.position.z * this.bodyManager1.scale
-    );
+      this.currentBodyPosition.x + (this.physicsHandler.leftHandController.position.x * this.simpleHandManager.scale) * 3,
+      ((this.physicsHandler.leftHandController.position.y) * this.simpleHandManager.scale) * 3,
+      this.currentBodyPosition.z + (this.physicsHandler.leftHandController.position.z * this.simpleHandManager.scale) * 3);
   }
 
   addLeftController(controller: ControllerInterface) {

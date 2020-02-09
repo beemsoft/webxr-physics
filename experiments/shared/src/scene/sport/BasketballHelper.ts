@@ -37,7 +37,7 @@ export class BasketballHelper {
     this.physicsHandler.addBody(ball);
     this.scene.add(ballMesh);
     this.physicsHandler.addContactMaterial(this.ballMaterial, this.physicsHandler.handMaterial, 0.001, 0.1);
-    this.physicsHandler.addContactMaterial(this.ballMaterial, this.physicsHandler.groundMaterial, 0.001, 0.1);
+    this.physicsHandler.addContactMaterial(this.ballMaterial, this.physicsHandler.groundMaterial, 0.6, 0.7);
     return ball;
   }
 
