@@ -1,4 +1,4 @@
-import {DirectionalLight, HemisphereLight, PerspectiveCamera, Scene} from 'three';
+import {DirectionalLight, HemisphereLight, PerspectiveCamera, Scene, WebGLRenderer} from 'three';
 import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
 import {SceneManagerInterface} from '../../../shared/src/scene/SceneManagerInterface';
 import ConstraintManager from '../../../shared/src/physics/ConstraintManager';
@@ -16,7 +16,7 @@ export default class SceneManager implements SceneManagerInterface {
   private constraintManager: ConstraintManager;
   private bodyManager: BodyManager;
 
-  build(camera: PerspectiveCamera, scene: Scene, maxAnisotropy: number, physicsHandler: PhysicsHandler) {
+  build(camera: PerspectiveCamera, scene: Scene, renderer: WebGLRenderer, physicsHandler: PhysicsHandler) {
     this.scene = scene;
     this.camera = camera;
     this.physicsHandler = physicsHandler;

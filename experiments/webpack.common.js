@@ -17,7 +17,8 @@ module.exports = {
         ragdoll: './ragdoll/src/',
         basicturn: './basicturn/src/',
         ragdollwithball: './ragdollwithball/src/',
-        basketball: './basketball/src/'
+        basketball: './basketball/src/',
+        ocean: './ocean/src/'
     },
     module: {
         rules: [

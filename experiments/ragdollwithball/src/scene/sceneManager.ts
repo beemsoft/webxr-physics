@@ -9,7 +9,7 @@ import {
   Scene,
   SphereGeometry,
   TextureLoader,
-  Vector3
+  Vector3, WebGLRenderer
 } from 'three';
 // @ts-ignore
 import {Body, Box, Plane, Quaternion, Vec3} from 'cannon';
@@ -54,7 +54,7 @@ export default class SceneManager implements SceneWithTeleporting {
   public xrReferenceSpace: XRReferenceSpace;
   private currentBodyPosition = new Vec3();
 
-  build(camera: PerspectiveCamera, scene: Scene, maxAnisotropy: number, physicsHandler: PhysicsHandler)  {
+  build(camera: PerspectiveCamera, scene: Scene, renderer: WebGLRenderer, physicsHandler: PhysicsHandler)  {
     this.scene = scene;
     this.sceneHelper = new SceneHelper(scene);
     this.camera = camera;

@@ -5,7 +5,7 @@ import {
   MeshBasicMaterial,
   PerspectiveCamera,
   PlaneGeometry,
-  Scene
+  Scene, WebGLRenderer
 } from 'three';
 import {Body, Plane, Vec3} from 'cannon';
 import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
@@ -51,7 +51,7 @@ export default class SceneManager implements SceneWithControllers {
   private isRightHandHoldingRightHand: boolean;
   private danceManager: DanceManager;
 
-  build(camera: PerspectiveCamera, scene: Scene, maxAnisotropy: number, physicsHandler: PhysicsHandler) {
+  build(camera: PerspectiveCamera, scene: Scene, renderer: WebGLRenderer, physicsHandler: PhysicsHandler) {
     this.scene = scene;
     this.camera = camera;
     this.physicsHandler = physicsHandler;

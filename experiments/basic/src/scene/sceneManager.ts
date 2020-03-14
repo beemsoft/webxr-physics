@@ -6,7 +6,7 @@ import {
   MeshNormalMaterial,
   PerspectiveCamera,
   Scene,
-  Vector3
+  Vector3, WebGLRenderer
 } from 'three';
 import {Body, Box, Material, Vec3} from 'cannon';
 import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
@@ -30,7 +30,7 @@ export default class SceneManager implements SceneWithControllers {
     this.audioHandler.initAudio();
   }
 
-  build(camera: PerspectiveCamera, scene: Scene, maxAnisotropy: number, physicsHandler: PhysicsHandler) {
+  build(camera: PerspectiveCamera, scene: Scene, renderer: WebGLRenderer, physicsHandler: PhysicsHandler) {
     this.scene = scene;
     this.physicsHandler = physicsHandler;
     let light = new DirectionalLight(0xFFFFFF, 1);
@@ -57,7 +57,7 @@ export default class SceneManager implements SceneWithControllers {
 
     this.audioHandler.audioElement.play();
 
-    let text = new TextMesh( maxAnisotropy, 1024, 512 );
+    let text = new TextMesh( renderer.capabilities.getMaxAnisotropy(), 1024, 512 );
     scene.add( text.mesh );
     text.mesh.position.set(0, 1, -2);
     text.set('Push the box and listen to the sound!');

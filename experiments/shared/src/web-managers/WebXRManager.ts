@@ -71,7 +71,7 @@ export default class WebXRManager {
       this.physicsHandler = new PhysicsHandler();
       this.controllerL = new HandController(inputSourceL, this.physicsHandler);
       this.controllerR = new HandController(inputSourceR, this.physicsHandler);
-      this.sceneBuilder.build(this.cameraManager.cameraVR, this.scene, this.renderer.capabilities.getMaxAnisotropy(), this.physicsHandler);
+      this.sceneBuilder.build(this.cameraManager.cameraVR, this.scene, this.renderer, this.physicsHandler);
       // @ts-ignore
       this.sceneBuilder.addLeftController(this.controllerL);
       // @ts-ignore

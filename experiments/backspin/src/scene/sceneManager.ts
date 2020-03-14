@@ -6,7 +6,7 @@ import {
   Scene,
   SphereGeometry,
   TextureLoader,
-  Vector2
+  Vector2, WebGLRenderer
 } from 'three';
 import {Body, Material, Sphere, Vec3} from 'cannon';
 import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
@@ -24,7 +24,7 @@ export default class SceneManager implements SceneWithControllers {
   private hand: Body;
   private handSettings = { handRadius: .15 };
 
-  build(camera: PerspectiveCamera, scene: Scene, maxAnisotropy: number, physicsHandler: PhysicsHandler) {
+  build(camera: PerspectiveCamera, scene: Scene, renderer: WebGLRenderer, physicsHandler: PhysicsHandler) {
     this.scene = scene;
     this.sceneHelper = new SceneHelper(scene);
     this.physicsHandler = physicsHandler;
@@ -32,7 +32,7 @@ export default class SceneManager implements SceneWithControllers {
     this.physicsHandler.world.gravity.set(0, -9.8,0);
     this.sceneHelper.addLight();
     this.addBall();
-    this.sceneHelper.addMessage('Catch the ball and throw it!', maxAnisotropy);
+    this.sceneHelper.addMessage('Catch the ball and throw it!', renderer.capabilities.getMaxAnisotropy());
   }
 
   addBall(){
