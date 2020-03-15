@@ -76,13 +76,13 @@ export default class SceneManager implements SceneWithTeleporting {
   }
 
   updateSun() {
-    var parameters = {
+    const parameters = {
       distance: 400,
       inclination: 0.49,
       azimuth: 0.205
     };
 
-    var cubeCamera = new CubeCamera( 0.1, 1, 512 );
+    const cubeCamera = new CubeCamera(0.1, 1, 512);
     cubeCamera.renderTarget.texture.generateMipmaps = true;
     cubeCamera.renderTarget.texture.minFilter = LinearMipmapLinearFilter;
     this.cubeCamera = cubeCamera;
@@ -90,22 +90,20 @@ export default class SceneManager implements SceneWithTeleporting {
     // @ts-ignore
     this.scene.background = cubeCamera.renderTarget;
 
-    var theta = Math.PI * ( parameters.inclination - 0.5 );
-    var phi = 2 * Math.PI * ( parameters.azimuth - 0.5 );
+    const theta = Math.PI * (parameters.inclination - 0.5);
+    const phi = 2 * Math.PI * (parameters.azimuth - 0.5);
 
-    this.light.position.x = parameters.distance * Math.cos( phi );
-    this.light.position.y = parameters.distance * Math.sin( phi ) * Math.sin( theta );
-    this.light.position.z = parameters.distance * Math.sin( phi ) * Math.cos( theta );
+    this.light.position.x = parameters.distance * Math.cos(phi);
+    this.light.position.y = parameters.distance * Math.sin(phi) * Math.sin(theta);
+    this.light.position.z = parameters.distance * Math.sin(phi) * Math.cos(theta);
 
-    this.sky.material.uniforms[ 'sunPosition' ].value = this.light.position.copy( this.light.position );
-    this.water.material.uniforms[ 'sunDirection' ].value.copy( this.light.position ).normalize();
-
+    this.sky.material.uniforms['sunPosition'].value = this.light.position.copy(this.light.position);
+    this.water.material.uniforms['sunDirection'].value.copy(this.light.position).normalize();
   }
 
   addSky() {
-    var sky = new Sky();
-
-    var uniforms = sky.material.uniforms;
+    const sky = new Sky();
+    const uniforms = sky.material.uniforms;
 
     uniforms[ 'turbidity' ].value = 10;
     uniforms[ 'rayleigh' ].value = 2;
