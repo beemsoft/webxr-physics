@@ -4,12 +4,15 @@ import {SceneManagerInterface} from '../../../shared/src/scene/SceneManagerInter
 import ConstraintManager from '../../../shared/src/physics/ConstraintManager';
 import BodyManager from '../../../shared/src/scene/human/bodyManager';
 import {Vec3} from 'cannon';
+import {ControllerInterface} from '../../../shared/src/web-managers/ControllerInterface';
+import {XRReferenceSpace} from '../../../shared/src/WebXRDeviceAPI';
 
 const HEAD = "head";
 const LEFT_HAND = "leftHand";
 const RIGHT_HAND = "rightHand";
 
 export default class SceneManager implements SceneManagerInterface {
+  public xrReferenceSpace: XRReferenceSpace;
   private scene: Scene;
   private camera: PerspectiveCamera;
   private physicsHandler: PhysicsHandler;
@@ -54,5 +57,17 @@ export default class SceneManager implements SceneManagerInterface {
         (this.camera.position.y * this.bodyManager.scale) * 2,
         -1 - (this.camera.position.z * this.bodyManager.scale));
     }
+  }
+
+  addLeftController(controller: ControllerInterface) {}
+
+  addRightController(controller: ControllerInterface) {}
+
+  setXrReferenceSpace(space: XRReferenceSpace) {
+    this.xrReferenceSpace = space;
+  }
+
+  getXrReferenceSpace(): XRReferenceSpace {
+    return this.xrReferenceSpace;
   }
 }

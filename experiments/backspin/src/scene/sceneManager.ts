@@ -13,8 +13,10 @@ import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
 import {ControllerInterface} from '../../../shared/src/web-managers/ControllerInterface';
 import {SceneHelper} from '../../../shared/src/scene/SceneHelper';
 import {SceneWithControllers} from '../../../shared/src/scene/SceneWithControllers';
+import {XRReferenceSpace} from '../../../shared/src/WebXRDeviceAPI';
 
 export default class SceneManager implements SceneWithControllers {
+  public xrReferenceSpace: XRReferenceSpace;
   private scene: Scene;
   private sceneHelper: SceneHelper;
   private physicsHandler: PhysicsHandler;
@@ -107,5 +109,13 @@ export default class SceneManager implements SceneWithControllers {
 
   addRightController(controller: ControllerInterface) {
     controller.makeVisible(this.scene);
+  }
+
+  setXrReferenceSpace(space: XRReferenceSpace) {
+    this.xrReferenceSpace = space;
+  }
+
+  getXrReferenceSpace(): XRReferenceSpace {
+    return this.xrReferenceSpace;
   }
 }

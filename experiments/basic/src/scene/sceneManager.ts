@@ -6,7 +6,7 @@ import {
   MeshNormalMaterial,
   PerspectiveCamera,
   Scene,
-  Vector3, WebGLRenderer
+  WebGLRenderer
 } from 'three';
 import {Body, Box, Material, Vec3} from 'cannon';
 import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
@@ -17,6 +17,7 @@ import {XRReferenceSpace} from '../../../shared/src/WebXRDeviceAPI';
 import {SceneWithControllers} from '../../../shared/src/scene/SceneWithControllers';
 
 export default class SceneManager implements SceneWithControllers {
+  public xrReferenceSpace: XRReferenceSpace;
   private scene: Scene;
   private physicsHandler: PhysicsHandler;
   protected cube: Mesh;
@@ -79,11 +80,11 @@ export default class SceneManager implements SceneWithControllers {
     controller.makeVisible(this.scene);
   }
 
-  setXrReferenceSpace(space: XRReferenceSpace): Vector3 {
-    throw new Error("Method not implemented.");
+  setXrReferenceSpace(space: XRReferenceSpace) {
+    this.xrReferenceSpace = space;
   }
 
   getXrReferenceSpace(): XRReferenceSpace {
-    return null;
+    return this.xrReferenceSpace;
   }
 }

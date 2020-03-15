@@ -15,6 +15,7 @@ import DanceManager from './dance/DanceManager';
 import {ControllerInterface} from '../../../shared/src/web-managers/ControllerInterface';
 import BodyManager from '../../../shared/src/scene/human/bodyManager';
 import {SceneWithControllers} from '../../../shared/src/scene/SceneWithControllers';
+import {XRReferenceSpace} from '../../../shared/src/WebXRDeviceAPI';
 
 const HEAD = "head";
 const LEFT_HAND = "leftHand";
@@ -34,6 +35,7 @@ const FOOT_OFFSET = 0.25;
 const HAND_AUTO_HOLD_DISTANCE = 0.3;
 
 export default class SceneManager implements SceneWithControllers {
+  public xrReferenceSpace: XRReferenceSpace;
   private scene: Scene;
   private camera: PerspectiveCamera;
   private physicsHandler: PhysicsHandler;
@@ -104,6 +106,14 @@ export default class SceneManager implements SceneWithControllers {
 
   addLeftController(controller: ControllerInterface) {
     this.controllerL = controller;
+  }
+
+  setXrReferenceSpace(space: XRReferenceSpace) {
+    this.xrReferenceSpace = space;
+  }
+
+  getXrReferenceSpace(): XRReferenceSpace {
+    return this.xrReferenceSpace;
   }
 
   private addShoulderConstraints() {
