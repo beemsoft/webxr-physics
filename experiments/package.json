@@ -13,7 +13,6 @@
   "dependencies": {
     "@types/cannon": "^0.1.4",
     "@types/dat.gui": "^0.7.5",
-    "@types/three": "=0.93.13",
     "cannon": "^0.6.2",
     "canvg": "^3.0.2",
     "dat.gui": "^0.7.6",
@@ -24,7 +23,7 @@
     "rgbcolor": "^1.0.1",
     "stackblur-canvas": "^2.2.0",
     "systemjs": "0.21.5",
-    "three": "^0.113.2"
+    "three": "^0.114.0"
   },
   "devDependencies": {
     "@babel/plugin-transform-modules-commonjs": "^7.7.5",
