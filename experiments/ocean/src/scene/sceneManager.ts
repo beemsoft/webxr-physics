@@ -1,27 +1,23 @@
 import {
   CubeCamera,
   DirectionalLight,
-  HemisphereLight,
+  LinearMipmapLinearFilter,
   PerspectiveCamera,
   PlaneBufferGeometry,
   RepeatWrapping,
   Scene,
   TextureLoader,
-  LinearMipmapLinearFilter, WebGLRenderer
+  WebGLRenderer
 } from 'three';
-// @ts-ignore
-import {Body, Vec3} from 'cannon';
 import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
 import ConstraintManager from '../../../shared/src/physics/ConstraintManager';
 import {ControllerInterface} from '../../../shared/src/web-managers/ControllerInterface';
-import {GUI} from 'dat.gui';
 import {XRReferenceSpace} from '../../../shared/src/WebXRDeviceAPI';
 import {SceneHelper} from '../../../shared/src/scene/SceneHelper';
 import {SceneWithTeleporting} from '../../../shared/src/scene/SceneWithTeleporting';
 import SimpleHandManager from '../../../shared/src/controller-hands/SimpleHandManager';
 import {Water} from '../../../shared/src/scene/water/Water';
 import {Sky} from '../../../shared/src/scene/sky/Sky';
-
 
 export default class SceneManager implements SceneWithTeleporting {
   private scene: Scene;
@@ -48,28 +44,22 @@ export default class SceneManager implements SceneWithTeleporting {
     this.physicsHandler = physicsHandler;
     this.constraintManager = new ConstraintManager(physicsHandler);
     this.simpleHandManager = new SimpleHandManager(scene, physicsHandler);
-    this.physicsHandler.dt = 1/80;
-    this.physicsHandler.world.gravity.set(0, -5,0);
     let light = new DirectionalLight( 0xffffff, 0.8 );
     this.light = light;
     this.scene.add(light);
-    // this.scene.add(new HemisphereLight(0x909090, 0x404040));
     this.addWater();
     this.addSky();
   };
 
   addWater() {
     let waterGeometry = new PlaneBufferGeometry( 10000, 10000 );
-
     let water = new Water(
       waterGeometry,
       {
         textureWidth: 512,
         textureHeight: 512,
         waterNormals: this.loader.load( '/textures/water/waternormals.jpg', function ( texture ) {
-
           texture.wrapS = texture.wrapT = RepeatWrapping;
-
         } ),
         alpha: 1.0,
         sunDirection: this.light.position.clone().normalize(),
@@ -146,5 +136,4 @@ export default class SceneManager implements SceneWithTeleporting {
   getXrReferenceSpace(): XRReferenceSpace {
     return this.xrReferenceSpace;
   }
-
 }
