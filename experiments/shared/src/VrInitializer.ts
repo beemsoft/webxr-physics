@@ -12,6 +12,8 @@ export class VrInitializer {
   }
 
   addVrButton() {
+    element = document.createElement('div');
+    document.body.appendChild(element);
     const button = document.createElement('button');
     button.style.display = 'inline-block';
     button.style.margin = '5px';
@@ -34,18 +36,19 @@ export class VrInitializer {
   }
 
   public init() {
-    // @ts-ignore
-    navigator.xr.isSessionSupported('immersive-vr')
-      .then(isSupported => {
-        if (isSupported) {
-          this.addVrButton();
-        } else {
-          new WebPageManager(this.sceneBuilder);
-        }
-      });
-    // Add div for button
-    element = document.createElement('div');
-    document.body.appendChild(element);
+    if (!navigator.xr) {
+      new WebPageManager(this.sceneBuilder);
+    } else {
+      // @ts-ignore
+      navigator.xr.isSessionSupported('immersive-vr')
+        .then(isSupported => {
+          if (isSupported) {
+            this.addVrButton();
+          } else {
+            new WebPageManager(this.sceneBuilder);
+          }
+        });
+    }
   }
 }
 
