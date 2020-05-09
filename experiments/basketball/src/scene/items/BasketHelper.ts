@@ -78,7 +78,7 @@ export default class BasketHelper {
     // @ts-ignore
     let imageCanvas2: HTMLCanvasElement = document.getElementById('svgCanvas');
     let imageContext: RenderingContext2D = imageCanvas2.getContext('2d');
-    return Canvg.from(imageContext, '/img/NBA_Logo.svg')
+    return Canvg.from(imageContext, '../img/NBA_Logo.svg')
       .then(svg => {
         svg.start();
         this.basketTexture = new Texture(imageCanvas2);
