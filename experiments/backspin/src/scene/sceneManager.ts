@@ -30,16 +30,18 @@ export default class SceneManager implements SceneWithControllers {
     this.scene = scene;
     this.sceneHelper = new SceneHelper(scene);
     this.physicsHandler = physicsHandler;
-    this.physicsHandler.dt = 1/180;
+    this.physicsHandler.dt = 1/100;
     this.physicsHandler.world.gravity.set(0, -9.8,0);
+    this.physicsHandler.world.solver.iterations = 30;
     this.sceneHelper.addLight();
     this.addBall();
+    this.addCatcher();
     this.sceneHelper.addMessage('Catch the ball and throw it!', renderer.capabilities.getMaxAnisotropy());
   }
 
   addBall(){
     const scale = 1;
-    const ballRadius = 0.17 * scale;
+    const ballRadius = 0.15 * scale;
     let ballSphere = new SphereGeometry( ballRadius, 16, 16 );
     let ballMaterial = new MeshPhongMaterial({
       map: this.loader.load('/textures/ball.png'),
@@ -52,7 +54,7 @@ export default class SceneManager implements SceneWithControllers {
     ballMesh.castShadow = true;
     this.physicsHandler.addMesh(ballMesh);
     let damping = 0.01;
-    let mass = 0.6237;
+    let mass = 0.1;
     let sphereShape = new Sphere(ballRadius);
     this.ballMaterial = new Material("ball");
     let ball = new Body({ mass: mass, material: this.ballMaterial });
@@ -62,10 +64,10 @@ export default class SceneManager implements SceneWithControllers {
     this.physicsHandler.addBody(ball);
     this.ball = ball;
     this.scene.add(ballMesh);
-    this.physicsHandler.addContactMaterial(this.ballMaterial, this.physicsHandler.handMaterial, 0.001, 0.1);
+    this.physicsHandler.addContactMaterial(this.ballMaterial, this.physicsHandler.handMaterial, 0.001, 0.2);
   }
 
-  addFingerTips() {
+  addCatcher() {
     let hand_material = new MeshBasicMaterial({
       color: 0xFF3333,
     });
@@ -104,11 +106,9 @@ export default class SceneManager implements SceneWithControllers {
   }
 
   addLeftController(controller: ControllerInterface) {
-    controller.makeVisible(this.scene);
   }
 
   addRightController(controller: ControllerInterface) {
-    controller.makeVisible(this.scene);
   }
 
   setXrReferenceSpace(space: XRReferenceSpace) {

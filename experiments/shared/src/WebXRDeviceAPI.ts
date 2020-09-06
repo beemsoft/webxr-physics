@@ -4,7 +4,7 @@ export interface XR extends EventTarget {
   requestDevice(): Promise<XRDevice>;
   ondevicechange?: Function;
 
-  requestSession(immersiveVr: string): Promise<XRSession>;
+  requestSession(mode: string, enabledFeatures?: Object): Promise<XRSession>;
 }
 declare global  {
   interface Navigator {
@@ -26,9 +26,15 @@ export interface XRSessionCreationOptions {
   requestAR?: boolean;
   outputContext?: XRPresentationContext;
 }
+interface XRRenderState {
+  depthNear?: number;
+  depthFar?: number;
+  inlineVerticalFieldOfView?: number;
+  baseLayer?: XRWebGLLayer;
+}
 export interface XRSession extends EventTarget {
-  renderState: any;
-  inputSources: any;
+  renderState: XRRenderState;
+  inputSources: Array<XRInputSource>;
   readonly device: XRDevice;
   readonly immersive: boolean;
   readonly outputContext: XRPresentationContext;
@@ -95,6 +101,7 @@ export interface XRFrameOfReference extends XRCoordinateSystem {
 
   getInputPose(inputSource: XRInputSource, frame: XRFrameOfReference);
   getViewerPose(frame: XRReferenceSpace);
+  getJointPose(joint: XRJointSpace, baseSpace: XRSpace): XRJointPose;
 
   getPose(gripSpace: any, refSpace: XRReferenceSpace): XRDevicePose;
 }
@@ -106,7 +113,10 @@ export declare enum XRReferenceSpaceType {
   "unbounded"
 }
 
-export interface XRReferenceSpace {
+export interface XRSpace extends EventTarget {
+}
+
+export interface XRReferenceSpace extends XRSpace {
   getOffsetReferenceSpace(xrRigidTransform: XRRigidTransform): XRReferenceSpace;
 }
 declare global  {
@@ -174,6 +184,7 @@ export type XRTargetRayMode = 'gazing' | 'pointing' | 'tapping';
 
 export interface XRInputSource {
   gripSpace: any;
+  readonly hand?: XRHand;
   readonly handedness: XRHandedness;
   readonly targetRayMode: XRTargetRayMode;
 }
@@ -276,4 +287,52 @@ declare global  {
 }
 export interface XRCoordinateSystemEventInit extends EventInit {
   coordinateSystem: XRCoordinateSystem;
+}
+export interface XRPose {
+  readonly transform: XRRigidTransform;
+  readonly emulatedPosition: boolean;
+}
+
+export interface XRJointPose extends XRPose {
+readonly radius?: number;
+}
+
+export interface XRJointSpace extends XRSpace {}
+
+export enum XRHandEnum {
+  WRIST,
+  THUMB_METACARPAL,
+  THUMB_PHALANX_PROXIMAL,
+  THUMB_PHALANX_DISTAL,
+  THUMB_PHALANX_TIP,
+
+  INDEX_METACARPAL,
+  INDEX_PHALANX_PROXIMAL,
+  INDEX_PHALANX_INTERMEDIATE,
+  INDEX_PHALANX_DISTAL,
+  INDEX_PHALANX_TIP,
+
+  MIDDLE_METACARPAL,
+  MIDDLE_PHALANX_PROXIMAL,
+  MIDDLE_PHALANX_INTERMEDIATE,
+  MIDDLE_PHALANX_DISTAL,
+  MIDDLE_PHALANX_TIP,
+
+  RING_METACARPAL,
+  RING_PHALANX_PROXIMAL,
+  RING_PHALANX_INTERMEDIATE,
+  RING_PHALANX_DISTAL,
+  RING_PHALANX_TIP,
+
+  LITTLE_METACARPAL,
+  LITTLE_PHALANX_PROXIMAL,
+  LITTLE_PHALANX_INTERMEDIATE,
+  LITTLE_PHALANX_DISTAL,
+  LITTLE_PHALANX_TIP
+}
+
+export interface XRHand extends Iterable<XRJointSpace> {
+  readonly length: number;
+
+  [index: number]: XRJointSpace;
 }

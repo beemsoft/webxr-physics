@@ -1,10 +1,21 @@
-import {Scene, WebGLRenderer} from 'three';
+import { Mesh, MeshBasicMaterial, Scene, SphereGeometry, WebGLRenderer } from 'three';
 import PhysicsHandler from '../physics/physicsHandler';
-import {SceneManagerInterface} from '../scene/SceneManagerInterface';
-import {ControllerInterface} from './ControllerInterface';
+import { SceneManagerInterface } from '../scene/SceneManagerInterface';
+import { ControllerInterface } from './ControllerInterface';
 import HandController from '../controller-hands/hand-controller';
 import CameraManager from '../camera/CameraManager';
-import {XRDevicePose, XRFrameOfReference, XRReferenceSpace} from '../WebXRDeviceAPI';
+import { XRDevicePose, XRFrameOfReference, XRHandEnum, XRReferenceSpace } from '../WebXRDeviceAPI';
+import { Body, Sphere } from "cannon";
+
+const orderedJoints = [
+  [XRHandEnum.THUMB_METACARPAL, XRHandEnum.THUMB_PHALANX_PROXIMAL, XRHandEnum.THUMB_PHALANX_DISTAL, XRHandEnum.THUMB_PHALANX_TIP],
+  [XRHandEnum.INDEX_METACARPAL, XRHandEnum.INDEX_PHALANX_PROXIMAL, XRHandEnum.INDEX_PHALANX_INTERMEDIATE, XRHandEnum.INDEX_PHALANX_DISTAL, XRHandEnum.INDEX_PHALANX_TIP],
+  [XRHandEnum.MIDDLE_METACARPAL, XRHandEnum.MIDDLE_PHALANX_PROXIMAL, XRHandEnum.MIDDLE_PHALANX_INTERMEDIATE, XRHandEnum.MIDDLE_PHALANX_DISTAL, XRHandEnum.MIDDLE_PHALANX_TIP],
+  [XRHandEnum.RING_METACARPAL, XRHandEnum.RING_PHALANX_PROXIMAL, XRHandEnum.RING_PHALANX_INTERMEDIATE, XRHandEnum.RING_PHALANX_DISTAL, XRHandEnum.RING_PHALANX_TIP],
+  [XRHandEnum.LITTLE_METACARPAL, XRHandEnum.LITTLE_PHALANX_PROXIMAL, XRHandEnum.LITTLE_PHALANX_INTERMEDIATE, XRHandEnum.LITTLE_PHALANX_DISTAL, XRHandEnum.LITTLE_PHALANX_TIP]
+];
+
+const handMeshList = Array<Body>();
 
 export default class WebXRManager {
   private renderer: WebGLRenderer;
@@ -23,10 +34,9 @@ export default class WebXRManager {
     this.cameraManager.createVrCamera();
     this.sceneBuilder = sceneBuilder;
 
-    navigator.xr.requestSession('immersive-vr')
+    navigator.xr.requestSession('immersive-vr', { enabledFeatures: ["hand-tracking"] })
       .then(session => {
         this.session = session;
-        this.session.addEventListener('select', this.onSelect);
         this.initRenderer();
         // this.session.requestReferenceSpace(XRReferenceSpaceType.local)
         this.session.requestReferenceSpace('local')
@@ -100,19 +110,50 @@ export default class WebXRManager {
   };
 
   private renderScene(frame: XRFrameOfReference, pose: XRDevicePose) {
-    this.controllerL.update(frame, this.xrReferenceSpace);
-    this.controllerR.update(frame, this.xrReferenceSpace);
+    let meshIndex = 0;
+    for (let inputSource of frame.session.inputSources) {
+      if (inputSource.hand) {
+        let wrist = inputSource.hand[XRHandEnum.WRIST];
+        if (!wrist) {
+          // this code is written to assume that the wrist joint is exposed
+          return;
+        }
+        for (let finger of orderedJoints) {
+          for (let joint1 of finger) {
+            let joint = inputSource.hand[joint1];
+            if (joint) {
+              let pose = frame.getJointPose(joint, this.xrReferenceSpace);
+              if (pose) {
+                let handBody: Body;
+                if (handMeshList[meshIndex]) {
+                  handBody = handMeshList[meshIndex];
+                } else {
+                  const sphere_geometry = new SphereGeometry(pose.radius, 8, 8);
+                  let material = new MeshBasicMaterial({
+                    color: 0xFF3333,
+                  });
+                  let mesh = new Mesh(sphere_geometry, material);
+                  this.scene.add(mesh);
+
+                  let handBody = new Body({ mass: 0, material: this.physicsHandler.handMaterial });
+                  handBody.addShape(new Sphere(pose.radius));
+                  handMeshList[meshIndex] = handBody;
+                  this.physicsHandler.addBody(handBody);
+                  this.physicsHandler.addMesh(mesh);
+                }
+                handBody.position.x = pose.transform.position.x;
+                handBody.position.y = pose.transform.position.y;
+                handBody.position.z = pose.transform.position.z;
+              }
+            }
+            meshIndex++;
+          }
+        }
+      }
+    }
     this.sceneBuilder.update();
     this.cameraManager.update(pose);
     this.physicsHandler.updatePhysics();
     this.renderer.render(this.scene, this.cameraManager.cameraVR);
   }
-
-  onSelect = (event) => {
-    if (event.inputSource.handedness === 'right') {
-      this.controllerR.isPressed();
-    } else {
-      this.controllerL.isPressed();
-    }
-  };
 }
