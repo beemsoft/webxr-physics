@@ -6,7 +6,7 @@ import {
   PlaneBufferGeometry,
   RepeatWrapping,
   Scene,
-  TextureLoader,
+  TextureLoader, WebGLCubeRenderTarget,
   WebGLRenderer
 } from 'three';
 import PhysicsHandler from '../../../shared/src/physics/physicsHandler';
@@ -82,7 +82,7 @@ export default class SceneManager implements SceneWithTeleporting {
       azimuth: 0.205
     };
 
-    const cubeCamera = new CubeCamera(0.1, 1, 512);
+    const cubeCamera = new CubeCamera(0.1, 1, new WebGLCubeRenderTarget(512));
     cubeCamera.renderTarget.texture.generateMipmaps = true;
     cubeCamera.renderTarget.texture.minFilter = LinearMipmapLinearFilter;
     this.cubeCamera = cubeCamera;
