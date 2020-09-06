@@ -64,8 +64,8 @@ export class TextMesh {
         this.texture.magFilter = LinearFilter;
         this.material = new RawShaderMaterial( {
             uniforms:{
-                opacity: { type: 'f', value: 1 },
-                map: { type: 't', value: this.texture }
+                opacity: { value: 1 },
+                map: { value: this.texture }
             },
             side: DoubleSide,
             transparent: true,
