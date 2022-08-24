@@ -18,7 +18,7 @@ Tested with Oculus Quest headset + 2 controllers
 
 ## Demo
 
-https://www.techytax.org/vr/
+https://www.beemsoft.nl/vr/
 
 ## Usage
 
